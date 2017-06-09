@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<!--[if lt IE 9]><script type="text/javascript">alert('IE版本太低不支持html5自适应网页，请升级到IE9以上访问，或更换浏览器。');window.location.replace('http://www.baidu.com')</script><![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <title>好学车</title>
+  <script type="text/javascript" src="static/js/interface.js"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+</body>
+<style>
+   ::-webkit-scrollbar {
+    width: 6px;
+    height: 10px;
+  }
+
+   ::-webkit-scrollbar-button:vertical {
+    display: none;
+  }
+
+   ::-webkit-scrollbar-track,
+   ::-webkit-scrollbar-corner {
+    background-color: #e2e2e2;
+    border-radius: 10px;
+  }
+
+   ::-webkit-scrollbar-thumb {
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, .3);
+    border-radius: 10px;
+  }
+
+   ::-webkit-scrollbar-thumb:vertical:hover {
+    background-color: rgba(0, 0, 0, .35);
+    display: block;
+  }
+
+   ::-webkit-scrollbar-thumb:vertical:active {
+    background-color: rgba(0, 0, 0, .38);
+  }
+
+  * {
+    outline: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+
+  body {
+    font-size: 13px;
+    overflow: hidden;
+    font-family: "Hiragino Sans GB";
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  a {
+    text-decoration: none;
+    color: #333;
+  }
+
+  ul,
+  li {
+    list-style: none;
+  }
+
+  .left {
+    float: left;
+  }
+
+  .right {
+    float: right;
+  }
+
+  .hide {
+    display: none;
+  }
+
+  .t-center {
+    text-align: center;
+  }
+
+  .t-right {
+    text-align: right;
+  }
+
+  .mt0 {
+    margin-top: 0;
+  }
+
+  .mt5 {
+    margin-top: 5px;
+  }
+
+  .mt10 {
+    margin-top: 10px;
+  }
+
+  .mt15 {
+    margin-top: 15px;
+  }
+
+  .mt20 {
+    margin-top: 20px;
+  }
+
+  .mt30 {
+    margin-top: 30px;
+  }
+
+  .mt50 {
+    margin-top: 50px;
+  }
+
+  .mb10 {
+    margin-bottom: 10px;
+  }
+
+  .mb15 {
+    margin-bottom: 15px;
+  }
+
+  .mb20 {
+    margin-bottom: 20px;
+  }
+
+  .pt0 {
+    padding-top: 0;
+  }
+
+  .pt10 {
+    padding-top: 10px;
+  }
+
+  .pt20 {
+    padding-top: 20px;
+  }
+
+  .pl10 {
+    padding-left: 10px;
+  }
+
+  .pb10 {
+    padding-bottom: 10px;
+  }
+
+  .pb20 {
+    padding-bottom: 20px;
+  }
+
+  .mr0 {
+    margin-right: 0;
+  }
+
+  .mr40 {
+    margin-right: 40px;
+  }
+
+  .mr20 {
+    margin-right: 20px;
+  }
+
+  .mr10 {
+    margin-right: 10px;
+  }
+
+  .ml5 {
+    margin-left: 5px;
+  }
+
+  .ml15 {
+    margin-left: 15px;
+  }
+
+  .ml50 {
+    margin-left: 50px;
+  }
+
+  .lineheight0 {
+    line-height: 0;
+  }
+
+  .el-form a {
+    color: #127abd;
+  }
+
+  .el-pagination {
+    margin-top: 20px;
+  }
+</style>
+
+<script type="text/javascript" src="static/js/particles/app.js"></script>
+<script type="text/javascript" src="static/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="static/js/particles/particles.min.js"></script>
+<script type="text/javascript" src="static/js/webcam/jquery.webcam.min.js"></script>
+<script type="text/javascript" src='http://10.50.50.117:8000/CLodopfuncs.js'></script>
+<script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=7d75056f04b7bbdbdb9fa5575e1fb185&plugin=AMap.MouseTool,AMap.PolyEditor&callback=amapInit"></script>
+<script type="text/javascript" src="http://webapi.amap.com/ui/1.0/main.js"></script>
+</html>
