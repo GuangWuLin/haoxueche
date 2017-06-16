@@ -197,12 +197,14 @@ export default {
                         delete data.modelSet3[item].gmtModify;
                     }
                     this.initTimesOfStage(this.timesCount, [2, 3]);
+                    this.modelOfStage = "科目二";
                     this.addModelFormVisible = true;
                 }
             });
         },
         //打开模式编辑窗体
         handleAdd() {
+            this.modelOfStage = "科目二";
             this.models.stage2 = [];
             this.models.stage3 = [];
             this.addModelForm.modelId = 0;
@@ -259,7 +261,7 @@ export default {
                         }
                     }
                     else {
-                        this.$message.warning({ showClose: true, message: "科目时段必须填写一项！" });
+                        this.$message.warning({ message: "科目时段必须填写一项！" });
                     }
                 }
             });
@@ -336,22 +338,22 @@ export default {
                     row.beginTime = row.beginTime + "00";
                 }
                 if (row.beginTime.split(":")[0] < 0 || row.beginTime.split(":")[0] > 23 || row.beginTime.split(":")[1] < 0 || row.beginTime.split(":")[1] > 59 || row.beginTime.indexOf("(") >= 0 || row.beginTime.split(":")[1].length > 2) {
-                    this.$message({ showClose: true, message: "您输入的时间无效！", type: "warning" });
+                    this.$message({ message: "您输入的时间无效！", type: "warning" });
                     row.beginTime = "";
                 }
                 else {
                     beginTime = (new Date()).getFullYear().toString() + "/" + (parseInt((new Date()).getMonth()) + 1).toString() + "/" + (new Date()).getDate().toString() + " " + row.beginTime;
                     beginTime = new Date(beginTime);
                     if (beginTime == "Invalid Date" || beginTime == "NaN") {
-                        this.$message({ showClose: true, message: "您输入的时间无效！", type: "warning" });
+                        this.$message({ message: "您输入的时间无效！", type: "warning" });
                         row.beginTime = "";
                         return;
                     }
                 }
                 var beginTimeMinutes = beginTime.getMinutes();
                 if ((parseInt(beginTimeMinutes) / 5).toString().indexOf(".") > -1) {
-                    this.$message({ showClose: true, message: "时间的分钟数必须为5整数倍，请重新输入！", type: "warning" });
-                    row.beginTime = "";
+                    //this.$message({ message: "时间的分钟数必须为5整数倍，请重新输入！", type: "warning" });
+                    //row.beginTime = "";
                 }
                 var endTime = row.endTime;
                 if ((beginTime != "" && beginTime != null) && (endTime != "" && endTime != null)) {
@@ -365,20 +367,20 @@ export default {
                     var endTimeHours = endTime.getHours();
                     var endTimeMinutes = endTime.getMinutes();
                     if (beginTime >= endTime) {
-                        this.$message({ showClose: true, message: "开始时间必须小于结束时间！", type: "warning" });
+                        this.$message({ message: "开始时间必须小于结束时间！", type: "warning" });
                         row.beginTime = "";
                         return;
                     }
                     if (this.modelOfStage === "科目二") {
                         if (compareTime(this.models.stage2, scopeIndex, beginTime, endTime) === false) {
-                            this.$message({ showClose: true, message: "该时间段与其它时间段重复！", type: "warning" });
+                            this.$message({ message: "该时间段与其它时间段重复！", type: "warning" });
                             row.beginTime = "";
                             return;
                         }
                     }
                     else {
                         if (compareTime(this.models.stage3, scopeIndex, beginTime, endTime) === false) {
-                            this.$message({ showClose: true, message: "该时间段与其它时间段重复！", type: "warning" });
+                            this.$message({ message: "该时间段与其它时间段重复！", type: "warning" });
                             row.beginTime = "";
                             return;
                         }
@@ -386,14 +388,14 @@ export default {
                     beginTime = beginTime.getTime();
                     endTime = endTime.getTime();
                     //求出开始时间和结束时间的秒差数
-                    var diffTime = (endTime - beginTime) / 1000;
+                    //var diffTime = (endTime - beginTime) / 1000;
                     //求出开始时间和结束时间的分钟差数
-                    var diffMinutes = diffTime / 60;
-                    if (((diffMinutes / 30)).toString().indexOf(".") > -1 && ((diffMinutes / 45)).toString().indexOf(".") > -1) {
-                        this.$message({ showClose: true, message: "时间段设置错误，分钟数差值必须为30或者45的整数倍，请重新设置！", type: "warning" });
-                        row.beginTime = "";
-                        return;
-                    }
+                    // var diffMinutes = diffTime / 60;
+                    // if (((diffMinutes / 30)).toString().indexOf(".") > -1 && ((diffMinutes / 45)).toString().indexOf(".") > -1) {
+                    //     this.$message({ message: "时间段设置错误，分钟数差值必须为30或者45的整数倍，请重新设置！", type: "warning" });
+                    //     row.beginTime = "";
+                    //     return;
+                    // }
                 }
             }
         },
@@ -410,22 +412,22 @@ export default {
                     row.endTime = row.endTime + "00";
                 }
                 if (row.endTime.split(":")[0] < 0 || row.endTime.split(":")[0] > 23 || row.endTime.split(":")[1] < 0 || row.endTime.split(":")[1] > 59 || row.endTime.indexOf("(") >= 0 || row.endTime.split(":")[1].length > 2) {
-                    this.$message({ showClose: true, message: "您输入的时间无效！", type: "warning" });
+                    this.$message({ message: "您输入的时间无效！", type: "warning" });
                     row.endTime = "";
                 }
                 else {
                     endTime = (new Date()).getFullYear().toString() + "/" + (parseInt((new Date()).getMonth()) + 1).toString() + "/" + (new Date()).getDate().toString() + " " + row.beginTime;
                     endTime = new Date(endTime);
                     if (endTime == "Invalid Date" || endTime == "NaN") {
-                        this.$message({ showClose: true, message: "您输入的时间无效！", type: "warning" });
+                        this.$message({ message: "您输入的时间无效！", type: "warning" });
                         row.endTime = "";
                         return;
                     }
                 }
                 var endTimeMinutes = endTime.getMinutes();
                 if ((parseInt(endTimeMinutes) / 5).toString().indexOf(".") > -1) {
-                    this.$message({ showClose: true, message: "时间的分钟数必须为5整数倍，请重新输入！", type: "warning" });
-                    row.endTime = "";
+                    //this.$message({ message: "时间的分钟数必须为5整数倍，请重新输入！", type: "warning" });
+                    //row.endTime = "";
                 }
                 var beginTime = row.beginTime;
                 if ((endTime != "" && endTime != null) && (beginTime != "" && beginTime != null)) {
@@ -440,20 +442,20 @@ export default {
                     var endTimeHours = endTime.getHours();
                     var endTimeMinutes = endTime.getMinutes();
                     if (beginTime >= endTime) {
-                        this.$message({ showClose: true, message: "结束时间必须大于开始时间！", type: "warning" });
+                        this.$message({ message: "结束时间必须大于开始时间！", type: "warning" });
                         row.endTime = "";
                         return;
                     }
                     if (this.modelOfStage === "科目二") {
                         if (compareTime(this.models.stage2, scopeIndex, beginTime, endTime) === false) {
-                            this.$message({ showClose: true, message: "该时间段与其它时间段重复！", type: "warning" });
+                            this.$message({ message: "该时间段与其它时间段重复！", type: "warning" });
                             row.endTime = "";
                             return;
                         }
                     }
                     else {
                         if (compareTime(this.models.stage3, scopeIndex, beginTime, endTime) === false) {
-                            this.$message({ showClose: true, message: "该时间段与其它时间段重复！", type: "warning" });
+                            this.$message({ message: "该时间段与其它时间段重复！", type: "warning" });
                             row.endTime = "";
                             return;
                         }
@@ -461,14 +463,14 @@ export default {
                     beginTime = beginTime.getTime();
                     endTime = endTime.getTime();
                     //求出开始时间和结束时间的秒差数
-                    var diffTime = (endTime - beginTime) / 1000;
-                    //求出开始时间和结束时间的分钟差数
-                    var diffMinutes = diffTime / 60;
-                    if (((diffMinutes / 30)).toString().indexOf(".") > -1 && ((diffMinutes / 45)).toString().indexOf(".") > -1) {
-                        this.$message({ showClose: true, message: "时间段设置错误，分钟数差值必须为30或者45的整数倍，请重新设置！", type: "warning" });
-                        row.endTime = "";
-                        return;
-                    }
+                    // var diffTime = (endTime - beginTime) / 1000;
+                    // //求出开始时间和结束时间的分钟差数
+                    // var diffMinutes = diffTime / 60;
+                    // if (((diffMinutes / 30)).toString().indexOf(".") > -1 && ((diffMinutes / 45)).toString().indexOf(".") > -1) {
+                    //     this.$message({ message: "时间段设置错误，分钟数差值必须为30或者45的整数倍，请重新设置！", type: "warning" });
+                    //     row.endTime = "";
+                    //     return;
+                    // }
                 }
             }
         },
@@ -479,41 +481,41 @@ export default {
             if (target === "personCount") {
                 if (!global.fieldVerification.IsNumber(row.personCount) || parseInt(row.personCount) < 1) {
                     row.personCount = 1;
-                    this.$message({ showClose: true, message: "可约人数只能是正整数且大于0", type: "warning" });
+                    this.$message({ message: "可约人数只能是正整数且大于0", type: "warning" });
                 }
                 else if (row.personCount > limit) {
                     row.personCount = limit;
-                    this.$message({ showClose: true, message: "可约人数最多不能超过" + limit + "人", type: "warning" });
+                    this.$message({ message: "可约人数最多不能超过" + limit + "人", type: "warning" });
                 }
             }
             else if (target === "classMin") {
                 if (!global.fieldVerification.IsNumber(row.classMin) || parseInt(row.classMin) < 1) {
                     row.classMin = 1;
-                    this.$message({ showClose: true, message: "学时分钟数只能是正整数且大于0", type: "warning" });
+                    this.$message({ message: "学时分钟数只能是正整数且大于0", type: "warning" });
                 }
                 else if (row.classMin > limit) {
                     row.classMin = limit;
-                    this.$message({ showClose: true, message: "学时分钟数最大不能超过" + limit + "分钟", type: "warning" });
+                    this.$message({ message: "学时分钟数最大不能超过" + limit + "分钟", type: "warning" });
                 }
             }
             else if (target === "cost") {
                 if (!global.fieldVerification.IsNumber(row.cost) || parseInt(row.cost) < 1) {
                     row.cost = 1;
-                    this.$message({ showClose: true, message: "正常价格只能是正整数且大于0", type: "warning" });
+                    this.$message({ message: "正常价格只能是正整数且大于0", type: "warning" });
                 }
                 else if (row.cost > limit) {
                     row.cost = limit;
-                    this.$message({ showClose: true, message: "正常价格最大不能超过" + limit + "元", type: "warning" });
+                    this.$message({ message: "正常价格最大不能超过" + limit + "元", type: "warning" });
                 }
             }
             else {
                 if (!global.fieldVerification.IsNumber(row.weekEnd) || parseInt(row.weekEnd) < 1) {
                     row.weekEnd = 1;
-                    this.$message({ showClose: true, message: "周末价格只能是正整数且大于0", type: "warning" });
+                    this.$message({ message: "周末价格只能是正整数且大于0", type: "warning" });
                 }
                 else if (row.weekEnd > limit) {
                     row.weekEnd = limit;
-                    this.$message({ showClose: true, message: "周末价格最大不能超过" + limit + "元", type: "warning" });
+                    this.$message({ message: "周末价格最大不能超过" + limit + "元", type: "warning" });
                 }
             }
         }

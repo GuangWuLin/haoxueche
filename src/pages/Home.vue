@@ -567,6 +567,9 @@ export default {
 
 
 
+
+
+
 /* 自定义重写element table样式 */
 
 .el-table tr {
@@ -600,6 +603,9 @@ export default {
 .el-table th>.cell.highlight {
   color: #000;
 }
+
+
+
 
 
 
@@ -676,7 +682,7 @@ export default {
 }
 
 .icon-xueyuan:before {
-  content: "\e605";
+  content: "\e111";
 }
 
 .icon-jiaolian:before {
@@ -824,21 +830,61 @@ export default {
   content: "\e66b";
 }
 
-  .icon-wechat:before{
-    content: "\e66f";
-  }
-   .icon-lilunJiaoxue:before{
-    content: "\e621";
-  }
-  //  .icon-jiaoshi:before{
-  //   content: "\e604";
-  // }
-    .icon-jiaoshi:before{
-    content: "\e615";
-  }
-   .icon-shexiangtou:before{
-    content: "\e62a";
-  }
+.icon-zengzhi-fuwu:before {
+  content: "\e7b6";
+}
+
+.icon-fuwu-zonglan:before {
+  content: "\e6e4";
+}
+
+.icon-fuwu-guanli:before {
+  content: "\e622";
+}
+
+.icon-lilun-jiaoxue:before {
+  content: "\e612";
+}
+
+.icon-lilun-jiaoshi:before {
+  content: "\e637";
+}
+
+.icon-lilun-shebei:before {
+  content: "\e62c";
+}
+
+.icon-shexiangtou:before {
+  content: "\e62a";
+}
+
+.icon-zidingyi:before {
+  content: "\e621";
+}
+
+.icon-kefu:before {
+  content: "\e602";
+}
+
+.icon-kaochangguanli:before {
+  content: "\e686";
+}
+
+.icon-weixin:before {
+  content: "\e66f";
+}
+
+.icon-baoxian:before {
+  content: "\e627";
+}
+
+.icon-shouyin:before {
+  content: "\e619";
+}
+
+.icon-dingzhihua:before {
+  content: "\e621";
+}
 </style>
 
 <style lang="scss">
@@ -1123,5 +1169,16 @@ p.group-title {
 .chapter-form {
   width: 240px;
   height: 240px;
+}
+
+.el-icon-search {
+  color: #FFF;
+  background: #20a0ff;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.el-input__icon.is-clickable:hover {
+  color: #FFF;
 }
 </style>

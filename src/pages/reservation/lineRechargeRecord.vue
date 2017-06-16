@@ -11,26 +11,26 @@
             </el-col>
             <el-col :span="8" class="right t-right">
                 <el-form :inline="true" :model="filters">
-                    <el-form-item v-if="rechargeType==='充学费'">
-                        <el-input class="search-input mr40" v-model="filters.schoolFee.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge" @keyup.enter.native="queryRecharge"></el-input>
+                    <el-form-item v-show="rechargeType==='充学费'">
+                        <el-input class="search-input mr40" v-model="filters.schoolFee.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
-                    <el-form-item v-if="rechargeType==='退学费'">
-                        <el-input class="search-input mr40" v-model="filters.withdrawalExpenses.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge" @keyup.enter.native="queryRecharge"></el-input>
+                    <el-form-item v-show="rechargeType==='退学费'">
+                        <el-input class="search-input mr40" v-model="filters.withdrawalExpenses.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
-                    <el-form-item v-if="rechargeType==='充学时'">
-                        <el-input class="search-input mr40" v-model="filters.timeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge" @keyup.enter.native="queryRecharge"></el-input>
+                    <el-form-item v-show="rechargeType==='充学时'">
+                        <el-input class="search-input mr40" v-model="filters.timeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
-                    <el-form-item v-if="rechargeType==='退学时'">
-                        <el-input class="search-input mr40" v-model="filters.withdrawalTimeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge" @keyup.enter.native="queryRecharge"></el-input>
+                    <el-form-item v-show="rechargeType==='退学时'">
+                        <el-input class="search-input mr40" v-model="filters.withdrawalTimeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
                 </el-form>
             </el-col>
         </el-row>
-        <el-row v-if="rechargeType==='充学费'">
+        <el-row v-show="rechargeType==='充学费'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <!--列表-->
@@ -41,9 +41,9 @@
                     </el-table-column>
                     <el-table-column prop="cost" label="支付金额/元">
                     </el-table-column>
-                    <el-table-column prop="userName" label="操作员">
+                    <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="userPhone" label="操作员电话">
+                    <el-table-column prop="studentPhone" label="学员电话">
                     </el-table-column>
                     <el-table-column prop="comments" label="订单备注">
                     </el-table-column>
@@ -55,7 +55,7 @@
                 </el-pagination>
             </el-col>
         </el-row>
-        <el-row v-if="rechargeType==='退学费'">
+        <el-row v-show="rechargeType==='退学费'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <!--列表-->
@@ -66,9 +66,9 @@
                     </el-table-column>
                     <el-table-column prop="cost" label="支付金额/元">
                     </el-table-column>
-                    <el-table-column prop="userName" label="操作员">
+                    <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="userPhone" label="操作员电话">
+                    <el-table-column prop="studentPhone" label="学员电话">
                     </el-table-column>
                     <el-table-column prop="comments" label="订单备注">
                     </el-table-column>
@@ -80,7 +80,7 @@
                 </el-pagination>
             </el-col>
         </el-row>
-        <el-row v-if="rechargeType==='充学时'">
+        <el-row v-show="rechargeType==='充学时'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <!--列表-->
@@ -93,9 +93,9 @@
                     </el-table-column>
                     <el-table-column prop="stageThreeTime" label="科三分钟数/分">
                     </el-table-column>
-                    <el-table-column prop="userName" label="操作员">
+                    <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="userPhone" label="操作员电话">
+                    <el-table-column prop="studentPhone" label="学员电话">
                     </el-table-column>
                     <el-table-column prop="comments" label="订单备注">
                     </el-table-column>
@@ -107,7 +107,7 @@
                 </el-pagination>
             </el-col>
         </el-row>
-        <el-row v-if="rechargeType==='退学时'">
+        <el-row v-show="rechargeType==='退学时'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <!--列表-->
@@ -120,9 +120,9 @@
                     </el-table-column>
                     <el-table-column prop="stageThreeTime" label="科三分钟数/分">
                     </el-table-column>
-                    <el-table-column prop="userName" label="操作员">
+                    <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="userPhone" label="操作员电话">
+                    <el-table-column prop="studentPhone" label="学员电话">
                     </el-table-column>
                     <el-table-column prop="comments" label="订单备注">
                     </el-table-column>
@@ -201,7 +201,6 @@ export default {
                     if (res.success === true) {
                         this.pageLoading = false;
                         let data = res.object;
-                        global.printLog(data);
                         let type = this.rechargeType;
                         if (type === "充学费") {
                             this.filters.schoolFee.total = data.num;

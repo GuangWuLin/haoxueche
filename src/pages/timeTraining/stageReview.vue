@@ -12,7 +12,7 @@
                 </el-radio-group>
             </el-col>
         </el-row>
-        <el-row v-if="stageType==='考核员签名'">
+        <el-row v-show="stageType==='考核员签名'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true">
@@ -44,12 +44,16 @@
                     <el-table-column prop="totalTime" label="培训学时(分钟)">
                     </el-table-column>
                     <el-table-column prop="pendingReportTime" label="有效学时(分钟)">
+                        <template scope="scope">
+                            {{scope.row.pendingReportTime}}
+                            <span style="color:#1D8CE0;" v-if="scope.row.needfulTime>0">(补学)</span>
+                        </template>
                     </el-table-column>
                     <el-table-column prop="mileage" label="里程(公里)" :formatter="formatter">
                     </el-table-column>
                     <el-table-column label="操作">
                         <template scope="scope">
-                            <el-button type="text" size="small" @click.stop="">培训记录表</el-button>
+                            <el-button type="text" size="small" @click.stop="queryStageTrainRecord(scope.row)">培训记录表</el-button>
                         </template>
                     </el-table-column>
                     <el-table-column label="备注" width="180">
@@ -62,7 +66,7 @@
                 </el-table>
             </el-col>
         </el-row>
-        <el-row v-if="stageType==='学员签名'">
+        <el-row v-show="stageType==='学员签名'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true">
@@ -85,8 +89,8 @@
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="carTypeName" label="车型">
-                    </el-table-column>
+                    <!--<el-table-column prop="carTypeName" label="车型">
+                    </el-table-column>-->
                     <el-table-column prop="duration" label="本次上报学时">
                     </el-table-column>
                     <el-table-column prop="classTime" label="理论学时">
@@ -97,13 +101,13 @@
                     </el-table-column>
                     <el-table-column label="操作">
                         <template scope="scope">
-                            <el-button type="text" size="small" @click.stop="stageChange">培训记录表</el-button>
+                            <el-button type="text" size="small" @click.stop="queryStageTrainRecord(scope.row)">培训记录表</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
             </el-col>
         </el-row>
-        <el-row v-if="stageType==='教练签名'">
+        <el-row v-show="stageType==='教练签名'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true">
@@ -126,8 +130,8 @@
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="carTypeName" label="车型">
-                    </el-table-column>
+                    <!--<el-table-column prop="carTypeName" label="车型">
+                    </el-table-column>-->
                     <el-table-column prop="duration" label="本次上报学时">
                     </el-table-column>
                     <el-table-column prop="classTime" label="理论学时">
@@ -138,13 +142,13 @@
                     </el-table-column>
                     <el-table-column label="操作">
                         <template scope="scope">
-                            <el-button type="text" size="small" @click.stop="stageChange">培训记录表</el-button>
+                            <el-button type="text" size="small" @click.stop="queryStageTrainRecord(scope.row)">培训记录表</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
             </el-col>
         </el-row>
-        <el-row v-if="stageType==='驾校签章'">
+        <el-row v-show="stageType==='驾校签章'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true">
@@ -167,8 +171,8 @@
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="carTypeName" label="车型">
-                    </el-table-column>
+                    <!--<el-table-column prop="carTypeName" label="车型">
+                    </el-table-column>-->
                     <el-table-column prop="duration" label="本次上报学时">
                     </el-table-column>
                     <el-table-column prop="classTime" label="理论学时">
@@ -179,13 +183,13 @@
                     </el-table-column>
                     <el-table-column label="操作">
                         <template scope="scope">
-                            <el-button type="text" size="small" @click.stop="stageChange">培训记录表</el-button>
+                            <el-button type="text" size="small" @click.stop="queryStageTrainRecord(scope.row)">培训记录表</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
             </el-col>
         </el-row>
-        <el-row v-if="stageType==='上报审核'">
+        <el-row v-show="stageType==='上报审核'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true">
@@ -208,8 +212,8 @@
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="carTypeName" label="车型">
-                    </el-table-column>
+                    <!--<el-table-column prop="carTypeName" label="车型">
+                    </el-table-column>-->
                     <el-table-column prop="duration" label="本次上报学时">
                     </el-table-column>
                     <el-table-column prop="classTime" label="理论学时">
@@ -220,13 +224,13 @@
                     </el-table-column>
                     <el-table-column label="操作">
                         <template scope="scope">
-                            <el-button type="text" size="small" @click.stop="stageChange">培训记录表</el-button>
+                            <el-button type="text" size="small" @click.stop="queryStageTrainRecord(scope.row)">培训记录表</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
             </el-col>
         </el-row>
-        <el-row v-if="stageType==='审核结果查询'">
+        <el-row v-show="stageType==='审核结果查询'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true">
@@ -246,8 +250,8 @@
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="carTypeName" label="车型">
-                    </el-table-column>
+                    <!--<el-table-column prop="carTypeName" label="车型">
+                    </el-table-column>-->
                     <el-table-column prop="duration" label="本次上报学时">
                     </el-table-column>
                     <el-table-column prop="gmtCreate" label="上报时间">
@@ -406,7 +410,7 @@ export default {
                 filter: {
                     stage: "1",
                     keyword: ""
-                },
+                }
             },
             dialogVisible: false,
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode
@@ -438,10 +442,24 @@ export default {
             setTimeout(() => {
                 request.timeTraining.stageRecordAudit.query.pendingReportRecordList(para).then((res) => {
                     if (res.success) {
-                        this.pageLoading = false;
-                        global.printLog(res.object);
-                        this.pendingReportRecord.data = res.object;
+                        let data = res.object;
+                        global.printLog(data);
+                        // this.pendingReportRecord.data = [];
+                        // for (let item in data) {
+                        //     this.pendingReportRecord.data.push({
+                        //         studentName: data[item].studentName,
+                        //         carTypeName: data[item].carTypeName,
+                        //         needfulTime: data[item].needfulTime,
+                        //         needStudy: data[item].needStudy,
+                        //         totalTime: data[item].totalTime,
+                        //         pendingReportTime: data[item].pendingReportTime,
+                        //         mileage: data[item].mileage,
+                        //         signStatus: data[item].signStatus
+                        //     })
+                        // }
+                        this.pendingReportRecord.data = data;
                     }
+                    this.pageLoading = false;
                 });
             }, 1000);
         },
@@ -452,10 +470,22 @@ export default {
             setTimeout(() => {
                 request.timeTraining.stageRecordAudit.query.stageRecordList(para).then((res) => {
                     if (res.success) {
-                        global.printLog(res);
-                        this.pageLoading = false;
-                        this.stageRecordList.data = res.object;
+                        let data = res.object;
+                        global.printLog(data);
+                        // this.stageRecordList.data = [];
+                        // for (let item in data) {
+                        //     this.stageRecordList.data.push({
+                        //         studentName: data[item].studentName,
+                        //         carTypeName: data[item].carTypeName,
+                        //         duration: data[item].duration,
+                        //         classTime: data[item].classTime,
+                        //         simulatorTime: data[item].simulatorTime,
+                        //         vehicleTime: data[item].vehicleTime
+                        //     });
+                        // }
+                        this.stageRecordList.data = data;
                     }
+                    this.pageLoading = false;
                 });
             }, 1000);
         },
@@ -482,6 +512,20 @@ export default {
                     }
                 });
             }, 1000);
+        },
+        queryStageTrainRecord(row) {
+            let stuId = row.studentId;
+            request.basic.student.query.stageTrainRecord([stuId, 1, 1]).then((res) => {
+                if (res.success) {
+                    let data = res.object;
+                    if (data.stagePdf === null) {
+                        this.$message.error("PDF地址不存在");
+                    }
+                    else {
+                        window.open(data.stagePdf.pdfUrl, "培训记录表");
+                    }
+                }
+            });
         },
         create() {
             if (this.stageType === "考核员签名") {
@@ -729,10 +773,13 @@ export default {
             }
         },
         handleSelecTableChange(row) {
-            if (row.signStatus === "pending") {
-                return true;
+            if (this.stageType === "考核员签名") {
+                if (row.signStatus === "pending") {
+                    return true;
+                }
+                return false;
             }
-            return false;
+            return true;
         },
         handleSelectionChange(data) {
             if (this.stageType === "学员签名") {
@@ -768,9 +815,17 @@ export default {
     },
     activated() {
         global.printLog("activated every one");
-        this.stageTypeChange(this.stageType);
+        setTimeout(() => {
+            this.stageTypeChange(this.stageType);
+        }, 1000);
     },
     mounted() {
+        this.reportedRecordList.filter.stage = "1";
+        this.pendingReportRecord.filter.stage = "1";
+        this.stageRecordList.school.filter.stage = "1";
+        this.stageRecordList.teacher.filter.stage = "1";
+        this.stageRecordList.student.filter.stage = "1";
+        this.stageRecordList.stagePerform.filter.stage = "1";
     }
 }
 

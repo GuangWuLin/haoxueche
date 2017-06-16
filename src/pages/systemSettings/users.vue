@@ -153,8 +153,19 @@ export default {
             },
             userFormRules: {
                 name: [
-                    { required: true, message: "请填写姓名", trigger: "blur" },
-                    { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
+                    {
+                        required: true,
+                        validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写姓名"));
+                            }
+                            if (!global.fieldVerification.IsChinese(value)) {
+                                return callback(new Error("姓名格式不正确，只能为中文"));
+                            }
+                            callback();
+                        }, trigger: "blur|change"
+                    },
+                    { max: 15, message: "长度不能超过15个中文", trigger: "blur" }
                 ],
                 gender: [
                     { required: true, message: "请选择性别", trigger: "change" }

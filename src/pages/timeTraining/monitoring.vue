@@ -225,7 +225,7 @@ export default {
             amaps: "",
             dateVisible: false,
             historicalPhoto: [],
-            resultsBoxShow: true,
+            resultsBoxShow: false,
             resultsDetailBoxShow: false,
             monitorType: "实时监控",
             monitor: {
@@ -326,7 +326,6 @@ export default {
             request.timeTraining.monitor.query.monitorInfoBySim(para).then((res) => {
                 if (res.success) {
                     let data = res.object;
-                    console.log(data);
                     this.monitor.cars.bySim = [];
                     let allCars = this.monitor.cars.all;
                     for (let i = 0, posData = data.length; i < posData; i++) {
@@ -685,6 +684,7 @@ export default {
         //初始化加载地图
         initData(target) {
             if (target === "monitor") {
+                this.resultsBoxShow = false;
                 this.queryMonitorCars();
             }
         },
@@ -723,8 +723,7 @@ export default {
                     }, 50);
                 }
                 else {
-                    this.$message.info({ message: "地图拼命加载中，" + interval });
-                    //global.printLog("地图拼命加载中，" + interval);
+                    global.printLog("地图拼命加载中，" + interval);
                 }
             }, 50);
         }
@@ -745,156 +744,156 @@ export default {
 
 </script>
 
-    <style lang="scss">
-    .tool {
-        position: absolute;
-        left: 15px;
-        top: 15px;
-        z-index: 6201;
-        .toolbox {
-            position: relative;
-            z-index: 2201;
-            width: 360px;
-            height: 50px;
-            background: #FFF;
-            border-radius: 3px;
-            cursor: pointer;
-            box-shadow: 0 2px 2px rgba(0, 0, 0, .15);
-            em {
-                font-style: normal;
-                margin-right: 5px;
-                font-size: 1.35em;
-                &.total {
-                    color: #1F2D3D;
-                }
-                &.online {
-                    color: #20A0FF;
-                }
-                &.tranning {
-                    color: #13CE66;
-                }
-            }
-            ul {
-                margin: 0 20px;
-            }
-            ul li {
-                float: left;
-                display: inline-block;
-                line-height: 50px;
-                margin-right: 20px;
-            }
-        }
-    }
-
-    .results-box {
-        position: absolute;
-        left: 15px;
-        top: 67px;
-        z-index: 6201;
+<style lang="scss">
+.tool {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    z-index: 6201;
+    .toolbox {
+        position: relative;
+        z-index: 2201;
         width: 360px;
-        max-height: 460px;
-        overflow-y: auto;
-        border-top: 1px solid #D8D8D8;
+        height: 50px;
         background: #FFF;
-        border-radius: 0 0 3px 3px;
+        border-radius: 3px;
+        cursor: pointer;
         box-shadow: 0 2px 2px rgba(0, 0, 0, .15);
-        ul li a {
-            display: block;
-            height: 30px;
-            line-height: 30px;
-            padding: 10px 15px;
-            cursor: pointer;
-            &:hover {
-                background: #EEEEEE;
+        em {
+            font-style: normal;
+            margin-right: 5px;
+            font-size: 1.35em;
+            &.total {
+                color: #1F2D3D;
             }
-            >p>em {
-                font-style: normal;
+            &.online {
+                color: #20A0FF;
             }
-        }
-        .online {
-            color: #20A0FF;
-        }
-        .offline {
-            color: #1F2D3D;
-        }
-        .tranning {
-            color: #13CE66;
-        }
-        .results-box-inner {
-            color: #1F2D3D;
-            padding: 10px 20px;
-            .info-item {
-                border-bottom: 1px solid #d1dbe5;
-                .item-pics {
-                    width: 290px;
-                    text-align: center;
-                    height: 95px;
-                    margin: 10px auto;
-                    img {
-                        width: 60px;
-                        height: 69px;
-                    }
-                }
-                .item-bar {
-                    width: 250px;
-                    height: 26px;
-                    margin: 6px auto 15px auto;
-                }
-            }
-            .photo {
-                width: 290px;
-                height: 220px;
+            &.tranning {
+                color: #13CE66;
             }
         }
-    }
-
-    a.capturePhoto {
-        width: 55px;
-        height: 60px;
-        z-index: 6221;
-        position: absolute;
-        left: 375px;
-        top: 160px;
-        background: #fff;
-        border-top-left-radius: 0;
-        border-top-right-radius: 2em;
-        border-bottom-right-radius: 2em;
-        border-bottom-left-radius: 0;
-        box-shadow: 3px 3px 10px rgba(0, 0, 0, .35);
-        .inner {
-            border-radius: 100%;
-            background: #20A0FF;
-            width: 40px;
-            height: 40px;
+        ul {
+            margin: 0 20px;
+        }
+        ul li {
+            float: left;
             display: inline-block;
-            position: absolute;
-            left: 8px;
-            top: 11px;
-            >i {
-                font-size: 2.1em;
-                position: relative;
-                top: 5px;
-                left: 7px;
-            }
-        }
-    }
-
-    .history-photo {
-        width: 700px;
-        padding-bottom: 40px;
-        p {
-            margin-bottom: 10px;
-        }
-        img.photo {
-            width: 456px;
-            height: 327px;
+            line-height: 50px;
             margin-right: 20px;
         }
-        img.student,
-        img.teacher {
-            width: 105px;
-            height: 110px;
-            margin-top: 25px;
+    }
+}
+
+.results-box {
+    position: absolute;
+    left: 15px;
+    top: 67px;
+    z-index: 6201;
+    width: 360px;
+    max-height: 460px;
+    overflow-y: auto;
+    border-top: 1px solid #D8D8D8;
+    background: #FFF;
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, .15);
+    ul li a {
+        display: block;
+        height: 30px;
+        line-height: 30px;
+        padding: 10px 15px;
+        cursor: pointer;
+        &:hover {
+            background: #EEEEEE;
+        }
+        >p>em {
+            font-style: normal;
         }
     }
+    .online {
+        color: #20A0FF;
+    }
+    .offline {
+        color: #1F2D3D;
+    }
+    .tranning {
+        color: #13CE66;
+    }
+    .results-box-inner {
+        color: #1F2D3D;
+        padding: 10px 20px;
+        .info-item {
+            border-bottom: 1px solid #d1dbe5;
+            .item-pics {
+                width: 290px;
+                text-align: center;
+                height: 95px;
+                margin: 10px auto;
+                img {
+                    width: 60px;
+                    height: 69px;
+                }
+            }
+            .item-bar {
+                width: 250px;
+                height: 26px;
+                margin: 6px auto 15px auto;
+            }
+        }
+        .photo {
+            width: 290px;
+            height: 220px;
+        }
+    }
+}
+
+a.capturePhoto {
+    width: 55px;
+    height: 60px;
+    z-index: 6221;
+    position: absolute;
+    left: 375px;
+    top: 160px;
+    background: #fff;
+    border-top-left-radius: 0;
+    border-top-right-radius: 2em;
+    border-bottom-right-radius: 2em;
+    border-bottom-left-radius: 0;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, .35);
+    .inner {
+        border-radius: 100%;
+        background: #20A0FF;
+        width: 40px;
+        height: 40px;
+        display: inline-block;
+        position: absolute;
+        left: 8px;
+        top: 11px;
+        >i {
+            font-size: 2.1em;
+            position: relative;
+            top: 5px;
+            left: 7px;
+        }
+    }
+}
+
+.history-photo {
+    width: 700px;
+    padding-bottom: 40px;
+    p {
+        margin-bottom: 10px;
+    }
+    img.photo {
+        width: 456px;
+        height: 327px;
+        margin-right: 20px;
+    }
+    img.student,
+    img.teacher {
+        width: 105px;
+        height: 110px;
+        margin-top: 25px;
+    }
+}
 </style>

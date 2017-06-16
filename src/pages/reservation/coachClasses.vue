@@ -4,7 +4,7 @@
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true" :model="filters">
                     <el-form-item>
-                        <el-input class="search-input" v-model="filters.keyword" placeholder="输入教练姓名、电话" icon="search" :on-icon-click="handleQueryAfterResetData" @keyup.enter.native="handleQueryAfterResetData"></el-input>
+                        <el-input class="search-input" v-model="filters.keyword" placeholder="输入教练姓名、电话" icon="search" :on-icon-click="handleQueryAfterResetData"></el-input>
                     </el-form-item>
                     <el-form-item style="width:150px;">
                         <el-select placeholder="请选择模式" v-model="filters.models" @change="handleQueryAfterResetData">
@@ -17,6 +17,9 @@
                             <el-option label="科目三" value="3"></el-option>
                         </el-select>
                     </el-form-item>
+                    <el-form-item>
+                        <el-date-picker type="date" placeholder="选择日期" v-model="filters.date" :clearable="false" :editable="false" @change="handleQueryAfterResetData" :picker-options="pickerOptions"></el-date-picker>
+                    </el-form-item>
                     <el-form-item class="right">
                         <el-checkbox :indeterminate="isIndeterminate" v-model="selectedAll" @change="handleAllSelectedChange" class="mr20" :disabled="classCount>0?false:true">全选</el-checkbox>
                         <el-button type="primary" :disabled="selected.length?false:true" @click="releaseClasses">报班{{selected.length?'('+selected.length+')':''}}</el-button>
@@ -24,20 +27,20 @@
                 </el-form>
             </el-col>
         </el-row>
-        <el-row class="review-tool">
-            <div class="wall-container">
-                <div class="header-two">
-                    <swiper :options="swiperOption" ref="swiper">
-                        <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
-                            <p>{{item.date}}</p>
-                            <p>{{item.week}}</p>
-                        </swiper-slide>
-                        <div class="swiper-button-prev" slot="button-prev"></div>
-                        <div class="swiper-button-next" slot="button-next"></div>
-                    </swiper>
+        <!--<el-row class="review-tool">
+                <div class="wall-container">
+                    <div class="header-two">
+                        <swiper :options="swiperOption" ref="swiper">
+                            <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
+                                <p>{{item.date}}</p>
+                                <p>{{item.week}}</p>
+                            </swiper-slide>
+                            <div class="swiper-button-prev" slot="button-prev"></div>
+                            <div class="swiper-button-next" slot="button-next"></div>
+                        </swiper>
+                    </div>
                 </div>
-            </div>
-        </el-row>
+            </el-row>-->
         <el-row>
             <div v-for="list in classes.list" class="classes-review">
                 <div class="coach-photo">
@@ -53,7 +56,7 @@
                         </a>
                         <a v-else class="is-selected">
                             <p>{{item.classTime}}</p>
-                            <p>{{item.message+item.stageName}}</p>
+                            <p>{{item.message}}</p>
                         </a>
                     </span>
                 </div>
@@ -90,29 +93,34 @@ export default {
             },
             modelOptions: [],
             dateList: [],
-            swiperOption: {
-                mousewheelControl: true,
-                preventLinksPropagation: false,
-                nextButton: ".swiper-button-next",
-                prevButton: ".swiper-button-prev",
-                onClick: swiper => {
-                    let list = this.dateList;
-                    let $index = swiper.clickedIndex;
-                    list[$index].click = true;
-                    for (var i = 0, len = list.length; i < len; i++) {
-                        if ($index === i) continue;
-                        list[i].click = false;
-                    }
-                    this.filters.date = list[$index].date;
-                    this.handleQueryAfterResetData();
-                }
-            },
+            // swiperOption: {
+            //     mousewheelControl: true,
+            //     preventLinksPropagation: false,
+            //     nextButton: ".swiper-button-next",
+            //     prevButton: ".swiper-button-prev",
+            //     onClick: swiper => {
+            //         let list = this.dateList;
+            //         let $index = swiper.clickedIndex;
+            //         list[$index].click = true;
+            //         for (var i = 0, len = list.length; i < len; i++) {
+            //             if ($index === i) continue;
+            //             list[i].click = false;
+            //         }
+            //         this.filters.date = list[$index].date;
+            //         this.handleQueryAfterResetData();
+            //     }
+            // },
             selected: [],
             classCount: 0,
             selectedAll: false,
             isIndeterminate: false,
             pageLoading: false,
-            schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode
+            schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
+            pickerOptions: {
+                disabledDate(time) {
+                    return time.getTime() < Date.now() - 8.64e7;
+                }
+            }
         }
     },
     methods: {
@@ -234,8 +242,8 @@ export default {
         }
     },
     created() {
-        this.dateList = global.getDays(new Date().Format("yyyy-MM-dd"), 100);
-        this.dateList[0].click = true;
+        // this.dateList = global.getDays(new Date().Format("yyyy-MM-dd"), 100);
+        // this.dateList[0].click = true;
     },
     activated() {
         this.queryModels();

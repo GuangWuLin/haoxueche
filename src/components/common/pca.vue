@@ -1,133 +1,88 @@
 <template>
-    <section>
-        <el-select placeholder="省" v-model="p" @change="pChange">
-            <el-option v-for="item in pData" :label="item.label" :value="item.value"></el-option>
-        </el-select>
-        <el-select placeholder="市" v-model="c" @change="cChange">
-            <el-option v-for="item in cData" :label="item.label" :value="item.value"></el-option>
-        </el-select>
-        <el-select placeholder="区" v-model="a" @change="aChange">
-            <el-option v-for="item in aData" :label="item.label" :value="item.value"></el-option>
-        </el-select>
-    </section>
+  <el-select @change="changable" v-model="value9" filterable remote placeholder="请输入所属区划代码" :remote-method="remoteMethod" :loading="loading" style="width:485px;">
+    <el-option v-for="item in options4" :key="item.value" :label="item.label" :value="item.value">
+      <span style="float: left">{{ item.value }}</span>
+      <span style="float: right; color: #8492a6; font-size: 13px">{{ item.label }}</span>
+    </el-option>
+  </el-select>
 </template>
 
 <script>
-import { global } from "../../assets/javascript/global";
+import axios from 'axios';
+// import { global } from "../../assets/javascript/global";
+
 export default {
-    props: ["province", "city", "area", "tag"],//限制上传个数，上传文件列表
-    data() {
-        return {
-            p: this.province,
-            c: this.city,
-            a: this.area,
-            flag: this.tag,
-            pData: [],
-            cData: [],
-            aData: [],
-            selected: []
+  props: ['county', 'tag'],
+  data() {
+    return {
+      options4: [],
+      value9:this.county,
+      list: [],
+      loading: false,
+      flag: this.tag,
+      selected: [],
+      dataArr:[]
+    }
+  },
+  methods: {
+    remoteMethod(param) {
+      let para = '';
+      if (Object.prototype.toString.call(param) === '[object String]') {
+        for (var i = 0; i < param.length; i++) {
+          if (param[i] * 1 !== NaN) {
+            para += param[i]
+          }
         }
-    },
-    methods: {
-        //获取省
-        getProvince() {
-            let that = this;
-            global.getArea("", function (data) {
-                that.pData = [];
-                for (let item in data) {
-                    that.pData.push({
-                        label: data[item].name,
-                        value: data[item].code
-                    });
-                }
-                if (data.length > 0) {
-                    if (that.p !== "") {
-                        that.getCity(that.p);
-                    }
-                }
+      }
+      // console.log(para.length);
+      if (para !== '' && para.length >= 4) {
+        this.loading = true;
+        this.getData(para)
+          .then(res => {
+            this.loading = false;
+            // console.log(res);
+            this.dataArr = res.data.object;
+            this.list = this.dataArr.map(item => {
+              return {
+                value:item.code,
+                label: `${item.province.name} - ${item.city.name} - ${item.name}`
+              }
             });
-        },
-        //获取市
-        getCity(val,isChange) {
-            let that = this;
-            if(isChange === true){
-                this.c = '';
-            }
-            if(val !== ''){
-                global.getArea(val, function (data) {
-                    that.cData = [];
-                    for (let item in data) {
-                        that.cData.push({
-                            label: data[item].name,
-                            value: data[item].code
-                        });
-                    }
-                    if (data.length > 0) {
-                        if (that.c === "") {
-                            that.c = data[0].code;
-                        }
-                        if (that.c !== "") {
-                            setTimeout(()=>{
-                                that.getCounty(that.c,false);
-                            },0);
-                        }
-                    }
-           	    });
-           }
-            
-        },
-        //获取区
-        getCounty(val,isChange) {
-            let that = this;
-            if(isChange === true){
-                this.a = '';
-            }
-            if(val!==''){
-                global.getArea(val, function (data) {
-                    that.aData = [];
-                    for (let item in data) {
-                        that.aData.push({
-                            label: data[item].name,
-                            value: data[item].code
-                        });
-                    }
-                    if (that.a === "") {
-                        that.a = data[0].code;
-                    }
-                });
-            }
-        },
-        //省切换
-        pChange(val) {
-            this.selected = [];
-            this.selected[0] = val;
-            this.getCity(val,true);
-            this.emit();
-        },
-        //市切换
-        cChange(val) {
-            this.selected[1] = val;
-            this.getCounty(val,true);
-            this.emit();
-        },
-        //区/县切换
-        aChange(val) {
-            this.selected[2] = val;
-            this.emit();
-        },
-        //回传数据
-        emit() {
-            if (typeof (this.selected[0]) !== "undefined" && typeof (this.selected[1]) !== "undefined" && typeof (this.selected[2]) !== "undefined") {
-                this.$emit("child-emit", this.selected, this.flag);
-            }
-        }
+            this.options4 = this.list.filter(m => {
+              return m.value.toLowerCase()
+                .indexOf(para.toLowerCase()) > -1;
+            });
+
+            // console.info(this.value9)
+          });
+      } else {
+        this.options4 = [];
+      }
     },
-    mounted: function () {
-        setTimeout(() => {
-            this.selected = [this.p, this.c, this.a];
-            this.getProvince();
-        }, 400);
+    getData(para) {
+      return Promise.resolve(axios.get(`http://182.148.114.194:8900/hxc/sc/common/area/county?areaCode=` + para));
+    },
+    changable(v) {
+     
+      this.selected = [v];
+      this.emit(v);
+    },
+    //回传数据
+    emit() {
+     
+      if (typeof (this.selected[0]) !== "undefined") {
+        let tmp = this.dataArr.filter(item=>{
+          return item.code === this.selected[0];
+        })
+        this.$emit("child-emit", tmp, this.flag);
+        
+      }
+    
+    }
+  },
+
+    beforeMount: function () {
+   
     }
 }
-
 </script>

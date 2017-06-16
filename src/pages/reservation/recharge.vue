@@ -4,15 +4,11 @@
         <el-col :span="24" class="toolbar">
             <el-form :inline="true" :model="recharges">
                 <el-form-item>
-                    <el-input class="search-input mr40" v-model="recharges.filters.keyword" placeholder="输入学员电话" icon="search" :on-icon-click="queryRechargeStu" @keyup.enter.native="queryRechargeStu"></el-input>
-                    <!--<el-button type="primary" @click="handleAdd(1)" class="mr10">充学费</el-button>
-                            <el-button type="primary" @click="handleAdd(2)" class="mr10">退学费</el-button>
-                            <el-button type="primary" @click="handleAdd(3)" class="mr10">充学时</el-button>
-                            <el-button type="primary" @click="handleAdd(4)" class="mr10">退学时</el-button>-->
+                    <el-input class="search-input mr40" v-model="recharges.filters.keyword" placeholder="输入学员电话" icon="search" :on-icon-click="queryRechargeStu"></el-input>
                 </el-form-item>
             </el-form>
             <!--列表-->
-            <el-table :data="recharges.data" @row-click="handleRowClick">
+            <el-table :data="recharges.data">
                 <el-table-column prop="studentName" label="姓名">
                 </el-table-column>
                 <el-table-column prop="cardNo" label="身份证" width="200">
@@ -35,10 +31,6 @@
                 </el-table-column>
                 <el-table-column label="操作" width="180">
                     <template scope="scope">
-                        <!--<el-button type="text" size="small" @click.stop="handleOpen(scope.row,1)" :disabled="scope.row.deductionDisabled">充学费</el-button>
-                                <el-button type="text" size="small" @click.stop="handleOpen(scope.row,2)" :disabled="scope.row.deductionDisabled">退学费</el-button>
-                                <el-button type="text" size="small" @click.stop="handleOpen(scope.row,3)" :disabled="scope.row.buckleDisabled">充学时</el-button>
-                                <el-button type="text" size="small" @click.stop="handleOpen(scope.row,4)" :disabled="scope.row.buckleDisabled">退学时</el-button>-->
                         <el-tag v-if="scope.row.isAppointment===0" type="gray">传统学员无此项操作</el-tag>
                         <div v-else>
                             <el-tag v-if="scope.row.learnFirst===true" type="gray">先学后付学员无此项操作</el-tag>
@@ -55,13 +47,13 @@
             <!--工具条-->
             <el-pagination layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="pageSize" :total="recharges.total">
             </el-pagination>
-            <el-dialog title="充学费" v-model="tuitionFeesFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style">
+            <el-dialog title="充学费" v-model="tuitionFeesFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style" @close="handleClose">
                 <el-form :model="tuitionFeesForm" ref="tuitionFeesForm" label-width="80px" class="mt30">
                     <el-form-item label="学员姓名">
                         <span>{{tuitionFeesForm.stuName}}</span>
                     </el-form-item>
                     <el-form-item label="金额" :rules="[{ type: 'number', required: true, message: '请填写充值金额', trigger: 'blur' }]">
-                        <el-input-number v-model="tuitionFeesForm.cost" :min="1" :max="10000000" :controls="false" @change="handleInputChange" ref="costInput"></el-input-number>
+                        <el-input v-model="tuitionFeesForm.cost" ref="costInput" @change="handleInputChange"></el-input>
                         <span class="units">元</span>
                     </el-form-item>
                 </el-form>
@@ -70,13 +62,13 @@
                     <el-button type="primary" size="large" @click="handleCreate">保存</el-button>
                 </div>
             </el-dialog>
-            <el-dialog title="退学费" v-model="tuitionRefundFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style">
+            <el-dialog title="退学费" v-model="tuitionRefundFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style" @close="handleClose">
                 <el-form :model="tuitionRefundForm" ref="tuitionRefundForm" label-width="80px" class="mt30">
                     <el-form-item label="学员姓名">
                         <span>{{tuitionRefundForm.stuName}}</span>
                     </el-form-item>
                     <el-form-item label="金额" :rules="[{ type: 'number', required: true, message: '请填写充值金额', trigger: 'blur' }]">
-                        <el-input-number v-model="tuitionRefundForm.cost" :min="1" :max="10000000" :controls="false" @change="handleInputChange"></el-input-number>
+                        <el-input v-model="tuitionRefundForm.cost" ref="costInput" @change="handleInputChange"></el-input>
                         <span class="units">元</span>
                     </el-form-item>
                 </el-form>
@@ -85,7 +77,7 @@
                     <el-button type="primary" size="large" @click="handleCreate">保存</el-button>
                 </div>
             </el-dialog>
-            <el-dialog title="充学时" v-model="timeRechargeFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style">
+            <el-dialog title="充学时" v-model="timeRechargeFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style" @close="handleClose">
                 <el-form :model="timeRechargeForm" ref="timeRechargeForm" label-width="80px" class="mt30">
                     <el-form-item label="学员姓名">
                         <span>{{timeRechargeForm.stuName}}</span>
@@ -97,19 +89,16 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item label="学时" :rules="[{ type: 'number', required: true, message: '请填写学时', trigger: 'blur' }]">
-                        <el-input-number v-model="timeRechargeForm.times" :min="1" :max="10000000" :controls="false" @change="handleInputChange"></el-input-number>
+                        <el-input v-model="timeRechargeForm.times" ref="costInput" @change="handleInputChange"></el-input>
                         <span class="units">分钟</span>
                     </el-form-item>
-                    <!--<el-form-item label="赠送" prop="gift">
-                                <el-checkbox v-model="timeRechargeForm.gift"></el-checkbox>
-                            </el-form-item>-->
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="timeRechargeFormVisible = false" size="large">取消</el-button>
                     <el-button type="primary" size="large" @click="handleCreate">保存</el-button>
                 </div>
             </el-dialog>
-            <el-dialog title="退学时" v-model="timeRefundFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style">
+            <el-dialog title="退学时" v-model="timeRefundFormVisible" :close-on-click-modal="false" custom-class="recharges-dialog-style" @close="handleClose">
                 <el-form :model="timeRefundForm" ref="timeRefundForm" label-width="80px" class="mt30">
                     <el-form-item label="学员姓名">
                         <span>{{timeRefundForm.stuName}}</span>
@@ -121,12 +110,9 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item label="学时" :rules="[{ type: 'number', required: true, message: '请填写学时', trigger: 'blur' }]">
-                        <el-input-number v-model="timeRefundForm.times" :min="1" :max="10000000" :controls="false" @change="handleInputChange"></el-input-number>
+                        <el-input v-model="timeRefundForm.times" ref="costInput" @change="handleInputChange"></el-input>
                         <span class="units">分钟</span>
                     </el-form-item>
-                    <!--<el-form-item label="赠送" prop="gift">
-                                <el-checkbox v-model="timeRefundForm.gift"></el-checkbox>
-                            </el-form-item>-->
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="timeRefundFormVisible = false" size="large">取消</el-button>
@@ -161,6 +147,9 @@
         display: inline-block;
         position: absolute;
         margin-left: 10px;
+    }
+    .el-input {
+        width: 180px;
     }
 }
 </style>
@@ -222,6 +211,7 @@ export default {
             userId: JSON.parse(sessionStorage.getItem("user")).userId,
             userName: JSON.parse(sessionStorage.getItem("user")).userName,
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
+            costInput: 0
         }
     },
     methods: {
@@ -256,16 +246,9 @@ export default {
             }, 1000);
         },
         handleInputChange(val) {
-            let _val = val.toString();
-            if (_val.indexOf(".") > -1) {
-                console.log(val);
-                console.log(_val.split(".")[0]);
-                this.$nextTick(_ => {
-                    this.$refs.costInput.value = _val.split(".")[0];
-                    console.log(this.$refs.costInput.value);
-                });
-                //this.tuitionFeesForm.cost = _val.split(".")[0];
-            }
+            this.$nextTick(function () {
+                this.$refs.costInput.$refs.input.value = (val === "0" || !global.fieldVerification.IsNumber(val) ? 1 : val > 99999 ? 99999 : val);
+            });
         },
         handleCurrentChange(val) {
             this.recharges.page = val;
@@ -289,6 +272,19 @@ export default {
                 this.timeRefundForm.stuName = stu.studentName;
             }
             this.thisStu = stu;
+            // setTimeout(() => {
+            //     alert(123);
+            //     this.$refs["tuitionFeesForm"].resetFields();
+            // }, 5000);
+            //this.resetForm(["tuitionFeesForm", "tuitionRefundForm", "timeRechargeForm", "timeRefundForm"]);
+        },
+        handleClose() {
+            this.tuitionFeesForm.cost = 1;
+            this.tuitionRefundForm.cost = 1;
+            this.timeRechargeForm.stage = "2";
+            this.timeRechargeForm.times = 1;
+            this.timeRefundForm.stage = "2";
+            this.timeRefundForm.times = 1;
         },
         handleCreate() {
             let _title = "充值";
@@ -298,6 +294,9 @@ export default {
             var _operateType = 0;
             var _stageTwoTime = 0;
             var _stageThreeTime = 0;
+            var _stage2Time = this.thisStu.stage2Time;
+            var _stage3Time = this.thisStu.stage3Time;
+            var _costBalance = this.thisStu.costBalance;
             if (this.tuitionFeesFormVisible) {
                 _operateType = 20;
                 _cost = this.tuitionFeesForm.cost;
@@ -306,6 +305,10 @@ export default {
             else if (this.tuitionRefundFormVisible) {
                 _title = "退费";
                 _operateType = 10;
+                if (_costBalance < this.tuitionRefundForm.cost) {
+                    this.$message.error(_title + "金额不能大于剩余学费金额！");
+                    return;
+                }
                 _cost = -this.tuitionRefundForm.cost;
                 _comments = "为学员：" + this.thisStu.studentName + _title + this.tuitionRefundForm.cost + "元";
             }
@@ -326,9 +329,17 @@ export default {
                 _operateType = 40;
                 _stage = this.timeRefundForm.stage;
                 if (_stage === "2") {
+                    if (_stage2Time < this.timeRefundForm.times) {
+                        this.$message.error(_title + "分钟数不能大于剩余学时分钟数！");
+                        return;
+                    }
                     _stageTwoTime = -this.timeRefundForm.times;
                 }
                 else {
+                    if (_stage3Time < this.timeRefundForm.times) {
+                        this.$message.error(_title + "分钟数不能大于剩余学时分钟数！");
+                        return;
+                    }
                     _stageThreeTime = -this.timeRefundForm.times;
                 }
                 _comments = "为学员：" + this.thisStu.studentName + (this.timeRefundForm.stage === "2" ? "科目二" : "科目三") + _title + this.timeRefundForm.times + "分";
@@ -351,8 +362,6 @@ export default {
                 studentPhone: this.thisStu.phone//学员电话号码
             }
             this.winTitle = _title;
-            console.log(para);
-            //return;
             request.appointment.recharge.create(para).then((res) => {
                 if (res.success) {
                     let that = this;
@@ -401,13 +410,10 @@ export default {
         resetForm(formNames) {
             for (var item in formNames) {
                 try {
-                    console.log(formNames[item]);
                     this.$refs[formNames[item]].resetFields();
                 }
                 catch (e) { }
             }
-        },
-        handleRowClick() {
         }
     },
     activated() {

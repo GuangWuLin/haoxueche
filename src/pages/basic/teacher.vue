@@ -15,7 +15,7 @@
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true" :model="filters">
                     <el-form-item>
-                        <el-input class="search-input mr40" v-model="filters.teacher.keyWord" placeholder="输入教练姓名、电话" icon="search" :on-icon-click="getTeachers" @keyup.enter.native="getTeachers"></el-input>
+                        <el-input class="search-input mr40" v-model="filters.teacher.keyWord" placeholder="输入教练姓名、电话" icon="search" :on-icon-click="getTeachers"></el-input>
                     </el-form-item>
                     <el-dropdown @command="handleCommand" class="right">
                         <el-button type="primary">
@@ -91,7 +91,7 @@
                     <el-form-item label="QQ" prop="qq">
                         <el-input auto-complete="off" v-model="addCoachForm.qq"></el-input>
                     </el-form-item>
-                    <el-form-item label="请选择" class="cs">
+                    <el-form-item label="所属区划" class="cs">
                         <PCA v-if="thisShow" tag="basic" v-on:child-emit="listenData"></PCA>
                     </el-form-item>
                     <el-form-item label="家庭住址" class="addr" prop="address">
@@ -141,6 +141,12 @@
                         <el-cascader :options="departmentData" :show-all-levels="false" @change="departmentChange" :change-on-select="true" v-model="selectedUnitOptions">
                         </el-cascader>
                     </el-form-item>
+                    <el-form-item label="是否发卡" class="normal" prop="timerTeacherInfo.useIccard">
+                        <el-select v-model="addCoachForm.timerTeacherInfo.useIccard" placeholder="请选择是否发卡">
+                            <el-option label="否" value="false"></el-option>
+                            <el-option label="是" value="true"></el-option>
+                        </el-select>
+                    </el-form-item>
                     <el-form-item label="备注" class="addr" prop="comments">
                         <el-input auto-complete="off" v-model="addCoachForm.comments"></el-input>
                     </el-form-item>
@@ -182,10 +188,10 @@
             <el-dialog title="修改" v-model="editCoachFormVisible" :close-on-click-modal="false" size="full" @close="dialogClose">
                 <el-form v-if="editCoachFormVisible" :model="editCoachForm" :rules="coachFormRules" ref="editCoachForm" :inline="true" class="demo-form-inline" label-width="85px">
                     <p class="group-title">个人信息</p>
-                    <el-form-item label="姓名" prop="name">
+                    <el-form-item label="姓名" prop="teacherName">
                         <el-input auto-complete="off" v-model="editCoachForm.teacherName"></el-input>
                     </el-form-item>
-                    <el-form-item label="性别" class="normal" prop="gender">
+                    <el-form-item label="性别" class="normal">
                         <el-select placeholder="请选择性别" v-model="editCoachForm.gender">
                             <el-option label="男" value="1"></el-option>
                             <el-option label="女" value="2"></el-option>
@@ -195,7 +201,7 @@
                         <el-input auto-complete="off" v-model="editCoachForm.phone"></el-input>
                     </el-form-item>
                     <el-form-item label="身份证号" prop="idNumber">
-                        <el-input auto-complete="off" v-model="editCoachForm.idNumber"></el-input>
+                        <el-input auto-complete="off" v-model="editCoachForm.idNumber" :disabled="editCoachForm.timerTeacherInfo.uploadState!==10"></el-input>
                     </el-form-item>
                     <el-form-item label="驾驶证号" prop="drivingLicenceNo">
                         <el-input auto-complete="off" v-model="editCoachForm.drivingLicenceNo"></el-input>
@@ -219,7 +225,7 @@
                         <el-input auto-complete="off" v-model="editCoachForm.qq"></el-input>
                     </el-form-item>
                     <el-form-item label="请选择" class="cs">
-                        <PCA v-if="thisShow" :province="editCoachForm.province" :city="editCoachForm.city" :area="editCoachForm.county" tag="basic" v-on:child-emit="listenData"></PCA>
+                        <PCA v-if="thisShow" :county="editCoachForm.county" tag="basic" v-on:child-emit="listenData"></PCA>
                     </el-form-item>
                     <el-form-item label="家庭住址" class="addr" prop="address">
                         <el-input auto-complete="off" v-model="editCoachForm.address"></el-input>
@@ -267,6 +273,14 @@
                     <el-form-item label="所属单位" class="normal" prop="deptId">
                         <el-cascader :options="departmentData" :show-all-levels="false" @change="departmentChange" :change-on-select="true" v-model="selectedUnitOptions">
                         </el-cascader>
+                    </el-form-item>
+                    <el-form-item label="是否发卡"  class="normal" prop="timerTeacherInfo.useIccard">
+                        <el-select :disabled="editCoachForm.timerTeacherInfo.useIccard" v-model="editCoachForm.timerTeacherInfo.useIccard" placeholder="请选择是否发卡">
+                            <el-option label="否" value="false"></el-option>
+                            <el-option label="是" value="true"></el-option>
+                            <!--<el-option :label="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?'是':'否'" :value="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?true:false"></el-option>
+                            <el-option v-if="!editCoachForm.timerTeacherInfo.useIccard" :label="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?'否':'是'" :value="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?false:true"></el-option>-->
+                        </el-select>
                     </el-form-item>
                     <el-form-item label="备注" class="addr" prop="comments">
                         <el-input auto-complete="off" v-model="editCoachForm.comments"></el-input>
@@ -319,8 +333,8 @@
                 </div>
             </el-dialog>
             <!--教练员请假界面-->
-            <el-dialog title="教练员请假" v-model="coachLeaveFormVisible" :close-on-click-modal="false" size="mini">
-                <el-form :model="coachLeaveForm" :rules="coachLeaveFormRules" ref="coachLeaveForm" :inline="true" label-width="85px">
+            <el-dialog title="教练员请假" v-model="coachLeaveFormVisible" :close-on-click-modal="false" size="mini" @close="dialogClose">
+                <el-form :model="coachLeaveForm" ref="coachLeaveForm" :inline="true" label-width="85px">
                     <div class="mt15 mb15 t-center">
                         <el-row>
                             <el-col :span="24">
@@ -332,11 +346,11 @@
                         </el-row>
                     </div>
                     <div class="leaveForm">
-                        <el-form-item :label="beginText" prop="beginTime">
+                        <el-form-item :label="beginText">
                             <el-date-picker type="datetime" placeholder="开始时间" v-model="leaveType.time.begin" :editable="false" v-show="leaveType.label==='按小时请假'"></el-date-picker>
                             <el-date-picker type="date" placeholder="开始日期" v-model="leaveType.day.begin" :editable="false" v-show="leaveType.label==='按天请假'"></el-date-picker>
                         </el-form-item>
-                        <el-form-item :label="endText" prop="endTime">
+                        <el-form-item :label="endText">
                             <el-date-picker type="datetime" placeholder="结束时间" v-model="leaveType.time.end" :editable="false" v-show="leaveType.label==='按小时请假'"></el-date-picker>
                             <el-date-picker type="date" placeholder="结束日期" v-model="leaveType.day.end" :editable="false" v-show="leaveType.label==='按天请假'"></el-date-picker>
                         </el-form-item>
@@ -360,26 +374,29 @@
                                 <el-option label="科目三" value="3"></el-option>
                             </el-select>
                         </el-form-item>
+                        <el-form-item style="width:192px;">
+                            <el-date-picker type="date" placeholder="选择日期" v-model="filters.classes.date" :clearable="false" :editable="false" @change="queryClasses" :picker-options="pickerOptions"></el-date-picker>
+                        </el-form-item>
                         <el-form-item class="right">
                             <el-checkbox :indeterminate="isIndeterminate" v-model="selectedAll" @change="handleAllSelectedChange" class="mr20" :disabled="classCount>0?false:true">全选</el-checkbox>
                             <el-button type="primary" :disabled="selected.length?false:true" @click="releaseClasses">报班{{selected.length?'('+selected.length+')':''}}</el-button>
                         </el-form-item>
                     </el-form>
                 </el-row>
-                <el-row>
-                    <div class="wall-container">
-                        <div class="header-two">
-                            <swiper :options="swiperOption" ref="swiper">
-                                <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
-                                    <p>{{item.date}}</p>
-                                    <p>{{item.week}}</p>
-                                </swiper-slide>
-                                <div class="swiper-button-prev" slot="button-prev"></div>
-                                <div class="swiper-button-next" slot="button-next"></div>
-                            </swiper>
-                        </div>
-                    </div>
-                </el-row>
+                <!--<el-row>
+                                        <div class="wall-container hide">
+                                            <div class="header-two">
+                                                <swiper :options="swiperOption" ref="swiper">
+                                                    <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
+                                                        <p>{{item.date}}</p>
+                                                        <p>{{item.week}}</p>
+                                                    </swiper-slide>
+                                                    <div class="swiper-button-prev" slot="button-prev"></div>
+                                                    <div class="swiper-button-next" slot="button-next"></div>
+                                                </swiper>
+                                            </div>
+                                        </div>
+                                    </el-row>-->
                 <el-row v-loading="filters.classes.loading" class="mt20">
                     <div v-for="list in classes.list" class="classes-review">
                         <div class="coach-photo">
@@ -395,7 +412,7 @@
                                 </a>
                                 <a v-else class="is-selected">
                                     <p>{{item.classTime}}</p>
-                                    <p>{{item.message+item.stageName}}</p>
+                                    <p>{{item.message}}</p>
                                 </a>
                             </span>
                         </div>
@@ -413,14 +430,15 @@
                 <div class="basic" style="margin-top:0;padding:0 20px;">
                     <el-form :model="detailTeacher">
                         <el-row>
-                            <el-col :span="20">
+                            <el-col :span="18">
                                 <p class="mt15 detailForm">
                                     <img v-bind:src="detailTeacher.timerTeacherInfo.photosUrl" class="photo" />
                                     <span class="ml50">{{detailTeacher.teacherName}}【{{detailTeacher.timerTeacherInfo.uploadState===20?'已备案':detailTeacher.timerTeacherInfo.uploadState===30?'修改未备案':'未备案'}}】</span>
                                 </p>
                             </el-col>
-                            <el-col :span="4">
+                            <el-col :span="6">
                                 <p class="t-right">
+                                    <el-button type="primary" size="large" @click="">&nbsp;换卡&nbsp;</el-button>
                                     <el-button type="primary" size="large" @click="handleOpenEdit(detailTeacher,'teacher')">&nbsp;修改&nbsp;</el-button>
                                 </p>
                             </el-col>
@@ -475,7 +493,7 @@
                                 <span>所属地区：{{detailTeacher.regionName}}</span>
                             </el-col>
                             <el-col :span="6">
-                                <span>入职日期：{{new Date(detailTeacher.inputDate).Format("yyyy-MM-dd")}}</span>
+                                <span>入职日期：{{detailTeacher.inputDate===""?"":new Date(detailTeacher.inputDate).Format("yyyy-MM-dd")}}</span>
                             </el-col>
                         </el-row>
                         <el-row>
@@ -515,6 +533,76 @@
                     <el-button @click.native="detailsCoachFormVisible = false" size="large">取消</el-button>
                 </div>
             </el-dialog>
+            <el-dialog title="学员制卡" v-model="showCard">
+                <!--制卡-->
+                    <object id="myobj"  border="1" height=30 width=200
+                        align="center" classid="clsid:93201C87-E8B2-4B20-A61A-6D4DFBD2D140" />
+                    </object>
+                <el-form :model="ruleForm" :inline="true" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                    
+                    <el-form-item label="学员姓名" prop="studentName">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.studentName" style="width:400px;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="身份证号码" prop="IdCardNo">
+                        <el-input :disabled="true" v-model="ruleForm.IdCardNo" placeholder="输入证件号" style="width:400px;"></el-input>
+                    </el-form-item>
+        
+                    <el-form-item label="驾校编号" prop="schNo">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.schNo" style="width:400px;"></el-input>
+                    </el-form-item>
+        
+                    <el-form-item label="学员ID" prop="stdNo">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.stdNo" style="width:400px;"></el-input>
+                    </el-form-item>
+
+                    
+                    <el-form-item label="卡号" prop="cardNo">
+                        <el-input auto-complete="off" v-model="ruleForm.cardNo" style="width:400px;"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="已通过科目" prop="thHour">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.thHour" style="width:400px;"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="三阶段学时要求" prop="opHour">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.opHour" style="width:400px;"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="已行驶的里程" prop="hadRunMile">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.hadRunMile" style="width:400px;"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="已学学时" prop="hadSubMinute">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.hadSubMinute" style="width:400px;"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="车型" class="normal" prop="carType">
+                        <el-select  :disabled="ruleForm.carType!=''" v-model="ruleForm.carType" placeholder="请选择培训车型">
+                            <el-option v-for="item in carTypeOptions" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                    </el-form-item>
+        
+                    <el-form-item label="第一指纹" prop="fingerMB1">
+                        <el-switch on-text="" :disabled="true" off-text="" v-model="ruleForm.fingerMB1" style="width:200px;"></el-switch>
+                        
+                    </el-form-item>
+        
+                    <el-form-item label="第二指纹" prop="fingerMB2">
+                        <el-switch :disabled="true" on-text="" off-text="" v-model="ruleForm.fingerMB2" style="width:200px;"></el-switch>
+                    </el-form-item>
+
+                    <!--特殊卡指纹待定-->
+                    <el-form-item label="特殊卡指纹" prop="noFinger">
+                        <el-switch on-text="" off-text="" v-model="ruleForm.noFinger"></el-switch>
+                    </el-form-item>
+        
+                    <el-form-item style="float:right;margin-right:44px;">
+                    <el-button type="primary" @click="XykSetInfo('ruleForm')">立即创建</el-button>
+                    <el-button @click="()=>showCard=false">取消</el-button>
+                </el-form-item>
+                </el-form>
+            </el-dialog>
+            
         </el-row>
         <el-row v-if="radioHeaderSel==='安全员'">
             <!--工具条-->
@@ -573,7 +661,7 @@
                     <el-form-item label="驾驶证号">
                         <el-input auto-complete="off" v-model="addSOForm.drivingLicenceNo"></el-input>
                     </el-form-item>
-                    <el-form-item label="请选择" class="cs">
+                    <el-form-item label="所属区划" class="cs">
                         <PCA v-if="thisShow" tag="basic" v-on:child-emit="listenData"></PCA>
                     </el-form-item>
                     <el-form-item label="家庭住址" class="addr" prop="address">
@@ -676,7 +764,7 @@
                                 <span>在职状态: {{formatData(detailsSO.workState,"workState")}}</span>
                             </el-col>
                             <el-col :span="6">
-                                <span>驾驶证初领日期: {{new Date(detailsSO.drivingLicenceTime).Format("yyyy-MM-dd")}}</span>
+                                <span>驾驶证初领日期: {{detailsSO.drivingLicenceTime===""?"":new Date().Format("yyyy-MM-dd")}}</span>
                             </el-col>
                             <el-col :span="7">
                                 <span>职业资格证号:{{detailsSO.vocationalNo}}</span>
@@ -706,7 +794,7 @@
                         </el-row>
                         <el-row>
                             <el-col :span="6">
-                                <span>入职日期：{{new Date(detailsSO.inputDate).Format("yyyy-MM-dd")}}</span>
+                                <span>入职日期：{{detailsSO.inputDate===""?"":new Date(detailsSO.inputDate).Format("yyyy-MM-dd")}}</span>
                             </el-col>
                             <el-col :span="5">
                                 <span>离职日期：{{(detailsSO.departureDate===""?"":new Date(detailsSO.departureDate).Format("yyyy-MM-dd"))}}</span>
@@ -724,10 +812,10 @@
             <el-dialog title="修改" v-model="editSOFormVisible" :close-on-click-modal="false" size="full" @close="dialogClose">
                 <el-form v-if="editSOFormVisible" :model="editSOForm" :rules="soFormRules" ref="editSOForm" :inline="true" class="demo-form-inline" label-width="85px">
                     <p class="group-title">个人信息</p>
-                    <el-form-item label="姓名" prop="name">
+                    <el-form-item label="姓名" prop="guardName">
                         <el-input auto-complete="off" v-model="editSOForm.guardName"></el-input>
                     </el-form-item>
-                    <el-form-item label="性别" class="normal" prop="gender">
+                    <el-form-item label="性别" class="normal">
                         <el-select placeholder="请选择性别" v-model="editSOForm.gender">
                             <el-option label="男" value="1"></el-option>
                             <el-option label="女" value="2"></el-option>
@@ -737,21 +825,21 @@
                         <el-input auto-complete="off" v-model="editSOForm.phone"></el-input>
                     </el-form-item>
                     <el-form-item label="身份证号" prop="idNumber">
-                        <el-input auto-complete="off" v-model="editSOForm.idNumber"></el-input>
+                        <el-input auto-complete="off" v-model="editSOForm.idNumber" :disabled="editSOForm.uploadState!==10"></el-input>
                     </el-form-item>
-                    <el-form-item label="驾驶证号" prop="drivingLicenceNo">
+                    <el-form-item label="驾驶证号">
                         <el-input auto-complete="off" v-model="editSOForm.drivingLicenceNo"></el-input>
                     </el-form-item>
-                    <el-form-item label="初领日期" prop="drivingLicenceTime">
+                    <el-form-item label="初领日期">
                         <el-date-picker type="date" placeholder="初领日期" v-model="editSOForm.drivingLicenceTime" :editable="false"></el-date-picker>
                     </el-form-item>
-                    <el-form-item label="准驾车型" class="normal" prop="drivingCarType">
+                    <el-form-item label="准驾车型" class="normal">
                         <el-select placeholder="请选择准驾车型" v-model="editSOForm.drivingCarType">
                             <el-option v-for="item in vehiclesTypeOption" :label="item.value" :value="item.key">
                             </el-option>
                         </el-select>
                     </el-form-item>
-                    <el-form-item label="准教车型" class="normal" prop="teachCarType">
+                    <el-form-item label="准教车型" class="normal">
                         <el-select placeholder="请选择准教车型" v-model="editSOForm.teachCarType">
                             <el-option v-for="item in vehiclesTypeOption" :label="item.value" :value="item.key">
                             </el-option>
@@ -761,7 +849,7 @@
                         <el-input auto-complete="off" v-model="editSOForm.qq"></el-input>
                     </el-form-item>
                     <el-form-item label="请选择" class="cs">
-                        <PCA v-if="thisShow" :province="editSOForm.province" :city="editSOForm.city" :area="editSOForm.county" tag="basic" v-on:child-emit="listenData"></PCA>
+                        <PCA v-if="thisShow" :county="editSOForm.county" tag="basic" v-on:child-emit="listenData"></PCA>
                     </el-form-item>
                     <el-form-item label="家庭住址" class="addr" prop="address">
                         <el-input auto-complete="off" v-model="editSOForm.address"></el-input>
@@ -866,7 +954,7 @@
                     <el-form-item label="驾驶证号" prop="drivingLicenceNo">
                         <el-input auto-complete="off" v-model="addAssessorForm.drivingLicenceNo"></el-input>
                     </el-form-item>
-                    <el-form-item label="请选择" class="cs">
+                    <el-form-item label="所属区划" class="cs">
                         <PCA v-if="thisShow" tag="basic" v-on:child-emit="listenData"></PCA>
                     </el-form-item>
                     <el-form-item label="家庭住址" class="addr" prop="address">
@@ -969,7 +1057,7 @@
                                 <span>在职状态: {{formatData(detailsSO.workState,"workState")}}</span>
                             </el-col>
                             <el-col :span="6">
-                                <span>驾驶证初领日期: {{new Date(detailsAssessor.drivingLicenceTime).Format("yyyy-MM-dd")}}</span>
+                                <span>驾驶证初领日期: {{detailsAssessor.drivingLicenceTime===""?"":new Date(detailsAssessor.drivingLicenceTime).Format("yyyy-MM-dd")}}</span>
                             </el-col>
                             <el-col :span="7">
                                 <span>职业资格证号:{{detailsAssessor.vocationalNo}}</span>
@@ -999,7 +1087,7 @@
                         </el-row>
                         <el-row>
                             <el-col :span="6">
-                                <span>入职日期：{{new Date(detailsAssessor.inputDate).Format("yyyy-MM-dd")}}</span>
+                                <span>入职日期：{{detailsAssessor.inputDate===""?"":new Date(detailsAssessor.inputDate).Format("yyyy-MM-dd")}}</span>
                             </el-col>
                             <el-col :span="5">
                                 <span>离职日期：{{(detailsAssessor.departureDate===""?"":new Date(detailsAssessor.departureDate).Format("yyyy-MM-dd"))}}</span>
@@ -1017,10 +1105,10 @@
             <el-dialog title="修改" v-model="editAssessorFormVisible" :close-on-click-modal="false" size="full" @close="dialogClose">
                 <el-form v-if="editAssessorFormVisible" :model="editAssessorForm" :rules="assessorFormRules" ref="editAssessorForm" :inline="true" class="demo-form-inline" label-width="85px">
                     <p class="group-title">个人信息</p>
-                    <el-form-item label="姓名" prop="name">
+                    <el-form-item label="姓名" prop="examinerName">
                         <el-input auto-complete="off" v-model="editAssessorForm.examinerName"></el-input>
                     </el-form-item>
-                    <el-form-item label="性别" class="normal" prop="gender">
+                    <el-form-item label="性别" class="normal">
                         <el-select placeholder="请选择性别" v-model="editAssessorForm.gender">
                             <el-option label="男" value="1"></el-option>
                             <el-option label="女" value="2"></el-option>
@@ -1030,7 +1118,7 @@
                         <el-input auto-complete="off" v-model="editAssessorForm.phone"></el-input>
                     </el-form-item>
                     <el-form-item label="身份证号" prop="idNumber">
-                        <el-input auto-complete="off" v-model="editAssessorForm.idNumber"></el-input>
+                        <el-input auto-complete="off" v-model="editAssessorForm.idNumber" :disabled="editAssessorForm.uploadState!==10"></el-input>
                     </el-form-item>
                     <el-form-item label="驾驶证号" prop="drivingLicenceNo">
                         <el-input auto-complete="off" v-model="editAssessorForm.drivingLicenceNo"></el-input>
@@ -1044,7 +1132,7 @@
                             </el-option>
                         </el-select>
                     </el-form-item>
-                    <el-form-item label="准教车型" class="normal" prop="teachCarType">
+                    <el-form-item label="准教车型" class="normal">
                         <el-select placeholder="请选择准教车型" v-model="editAssessorForm.teachCarType">
                             <el-option v-for="item in vehiclesTypeOption" :label="item.value" :value="item.key">
                             </el-option>
@@ -1054,8 +1142,7 @@
                         <el-input auto-complete="off" v-model="editAssessorForm.qq"></el-input>
                     </el-form-item>
                     <el-form-item label="请选择" class="cs">
-                        <!--<PCA v-if="thisShow" :province="editCoachForm.province" :city="editCoachForm.city" :area="editCoachForm.county" tag="basic" v-on:child-emit="listenData"></PCA>-->
-                        <PCA v-if="thisShow" :province="editAssessorForm.province" :city="editAssessorForm.city" :area="editAssessorForm.county" tag="basic" v-on:child-emit="listenData"></PCA>
+                        <PCA v-if="thisShow" :county="editAssessorForm.county" tag="basic" v-on:child-emit="listenData"></PCA>
                     </el-form-item>
                     <el-form-item label="家庭住址" class="addr" prop="address">
                         <el-input auto-complete="off" v-model="editAssessorForm.address"></el-input>
@@ -1068,7 +1155,7 @@
                     <el-form-item label="入职日期" prop="inputDate">
                         <el-date-picker type="date" placeholder="入职日期" v-model="editAssessorForm.inputDate" :editable="false"></el-date-picker>
                     </el-form-item>
-                    <el-form-item label="离职日期" prop="departureDate">
+                    <el-form-item label="离职日期">
                         <el-date-picker type="date" placeholder="离职日期" v-model="editAssessorForm.departureDate" :editable="false"></el-date-picker>
                     </el-form-item>
                     <el-form-item label="职业资格证号" prop="vocationalNo">
@@ -1106,116 +1193,6 @@
     </section>
 </template>
 
-<style scope lang="scss">
-.el-dialog__body {
-    padding: 0 20px;
-    .el-dialog__header {
-        padding: 20px 20px 20px;
-    }
-}
-
-.leaveForm {
-    margin-top: 20px;
-    .el-date-editor.el-input,
-    .el-textarea__inner {
-        width: 300px;
-    }
-}
-
-.wall {
-    border: 1px solid #E7EBED;
-    margin: 0;
-    border-right: 0;
-}
-
-.wall .data-header {
-    height: 64px;
-    width: 100%;
-}
-
-.wall .data-header .left-header {
-    width: 100px;
-    float: left;
-    display: inline-block;
-    border-right: 1px solid #E7EBED;
-}
-
-.wall .data-header .left-header div.back-slant {
-    width: 100px;
-    height: 63px;
-    position: relative;
-    background-color: transparent;
-}
-
-.wall .data-header .left-header div.back-slant span.time {
-    left: 55px;
-    top: 8px;
-}
-
-.wall .data-header .left-header div.back-slant span.coach {
-    left: 18px;
-    top: 35px;
-}
-
-.wall .data-header .left-header div.back-slant span {
-    position: absolute;
-    z-index: 999;
-    font-size: 14px;
-    color: #8799AB;
-}
-
-.wall .data-header .left-header div.back-slant:before {
-    position: absolute;
-    top: 0px;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    border-bottom: 63px solid #E7EBED;
-    border-right: 101px solid transparent;
-    content: "";
-}
-
-.wall .data-header .left-header div.back-slant:after {
-    position: absolute;
-    left: 0;
-    right: 1px;
-    top: 1px;
-    bottom: 0;
-    border-bottom: 63px solid #FFF;
-    border-right: 101px solid transparent;
-    content: "";
-}
-
-.wall .data-header .right-top {
-    float: left;
-    display: inline-block;
-    height: 64px;
-}
-
-.wall .data-header .right-top .week-row {
-    height: 64px;
-    width: 100%;
-    border-bottom: 1px solid #E7EBED;
-}
-
-.wall .data-header .right-top .week-row span {
-    height: 20px;
-    line-height: 40px;
-    display: block;
-}
-
-.wall .data-header .right-top .week-row a {
-    display: inline-block;
-    height: 53px;
-    text-align: center;
-    text-decoration: none;
-    color: #8799ab;
-    float: left;
-    border-right: 1px solid #E7EBED;
-    padding: 6px 30px;
-}
-</style>
-
 <script>
 import $ from "jquery";
 import { request } from "../../api/api";
@@ -1225,6 +1202,23 @@ import { global } from "../../assets/javascript/global";
 export default {
     data() {
         return {
+            
+            ruleForm: {
+                studentName: '青青子衿',
+                IdCardNo: '123456',
+                schNo:'90028',
+                cardNo: '2938',
+                stdNo: '9527',
+                noFinger: false,
+                fingerMB1:'',
+                fingerMB2:'',
+                thHour:'km1;km2',
+                opHour:'0,12,0,0;24,2,0,50;20,16,4,300',
+                hadRunMile:'0;50;0;0',
+                hadSubMinute:'15,15,15;15,15,15;0,0,0;0,0,0',
+                carType:'C1'
+            },
+            showCard: true,
             thisShow: false,
             pageLoading: false,
             emptyVisible: false,
@@ -1264,7 +1258,8 @@ export default {
                     photosId: 0,
                     proPhotosId: 0,
                     uploadState: 0,
-                    teacherUnifyCode: ""
+                    teacherUnifyCode: "",
+                    useIccard: 'false'
                 },
                 deptIdListInfo: []
             },
@@ -1353,7 +1348,8 @@ export default {
                     faceId: 0,
                     faceppId: "",
                     photosId: 0,
-                    proPhotosId: 0
+                    proPhotosId: 0,
+                    useIccard: 'false'
                 }
             },
             switchSetting: false, //预约类型开关
@@ -1387,6 +1383,9 @@ export default {
                 ],
                 deptId: [
                     { required: true, message: "请选择所属单位", trigger: "change" }
+                ],
+                "timerTeacherInfo.useIccard": [
+                    { required: true, message: "请选择是否为发卡教练", trigger: "change" }
                 ]
             },
             detailsCoachFormVisible: false,
@@ -1430,7 +1429,8 @@ export default {
                     faceId: 0,
                     faceppId: "",
                     photosId: 0,
-                    proPhotosId: 0
+                    proPhotosId: 0,
+                    useIccard: 'false'
                 }
             },
 
@@ -1441,14 +1441,6 @@ export default {
                 beginTime: "",
                 endTime: "",
                 comments: ""
-            },
-            coachLeaveFormRules: {
-                beginTime: [
-                    { type: "date", required: true, message: "请选择开始日期", trigger: "change" }
-                ],
-                endTime: [
-                    { type: "date", required: true, message: "请选择结束日期", trigger: "change" }
-                ]
             },
             coachLeaveFormVisible: false,
 
@@ -1672,23 +1664,23 @@ export default {
             pageSize: global.pageSize,
             dateList: [],
             photographFormVisible: false,
-            swiperOption: {
-                mousewheelControl: true,
-                preventLinksPropagation: false,
-                nextButton: ".swiper-button-next",
-                prevButton: ".swiper-button-prev",
-                onClick: swiper => {
-                    let list = this.dateList;
-                    let $index = swiper.clickedIndex;
-                    list[$index].click = true;
-                    for (var i = 0, len = list.length; i < len; i++) {
-                        if ($index === i) continue;
-                        list[i].click = false;
-                    }
-                    this.filters.classes.date = list[$index].date;
-                    this.queryClasses();
-                }
-            },
+            // swiperOption: {
+            //     mousewheelControl: true,
+            //     preventLinksPropagation: false,
+            //     nextButton: ".swiper-button-next",
+            //     prevButton: ".swiper-button-prev",
+            //     onClick: swiper => {
+            //         let list = this.dateList;
+            //         let $index = swiper.clickedIndex;
+            //         list[$index].click = true;
+            //         for (var i = 0, len = list.length; i < len; i++) {
+            //             if ($index === i) continue;
+            //             list[i].click = false;
+            //         }
+            //         this.filters.classes.date = list[$index].date;
+            //         this.queryClasses();
+            //     }
+            // },
             selected: [],
             classCount: 0,
             selectedAll: false,
@@ -1696,10 +1688,97 @@ export default {
             classes: {
                 total: 0,
                 list: []
+            },
+            pickerOptions: {
+                disabledDate(time) {
+                    return time.getTime() < Date.now() - 8.64e7;
+                }
             }
         }
     },
     methods: {
+        XykReadInfo() {
+            // alert(10086);
+            // var beg = new Date();
+            var addsCard = document.getElementById("myobj");
+            // console.log(addsCard);
+
+            addsCard.SetReaderType('AYUSB');
+            // // var results = addsCard.ReadCard();
+            var revalue = addsCard.XykReadInfo();
+            if (revalue == "") revalue = "错误:" + addsCard.LastError;
+            this.input2 = revalue;
+            console.log(revalue);
+
+            // var end = new Date();
+            // alert(end.getSeconds() * 1000 + end.getMilliseconds() - (beg.getSeconds() * 1000 + beg.getMilliseconds()));
+        },
+        XykSetInfo() {
+            console.log(this.ruleForm)
+            // var obj = 
+            var setCard = document.getElementById('myobj');
+            setCard.SetReaderType('AYUSB');
+            let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
+            var info = setCard.XykSetInfo(
+                this.ruleForm.schNo, 
+                this.ruleForm.stdNo, 
+                this.ruleForm.studentName, 
+                this.ruleForm.carType, 
+                this.ruleForm.IdCardNo, 
+                this.ruleForm.fingerMB1, 
+                this.ruleForm.fingerMB2, 
+                this.ruleForm.thHour, 
+                this.ruleForm.opHour, 
+                this.ruleForm.hadRunMile, 
+                "",
+                this.ruleForm.hadSubMinute, 
+                finger);
+            // console.log(info);
+            if (info == "") info = "错误:" + setCard.LastError;
+            this.input2 = info;
+        },
+        XykSetInfoBeg() {
+            var setCard = document.getElementById('myobj');
+            setCard.SetReaderType('AYUSB');
+            let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
+            var re = setCard.XykSetInfoBeg(
+                this.ruleForm.schNo, 
+                this.ruleForm.stdNo, 
+                this.ruleForm.studentName, 
+                this.ruleForm.carType,
+                 this.ruleForm.IdCardNo, 
+                 this.ruleForm.fingerMB1, 
+                 this.ruleForm.fingerMB2, 
+                 this.ruleForm.thHour, 
+                 this.ruleForm.opHour, 
+                 this.ruleForm.hadRunMile, 
+                 "",
+                 this.ruleForm.hadSubMinute, 
+                 finger);
+            if (re == "") re = "设置中...";
+            this.input2 = re;
+        },
+
+        ieXykSetInfoEnd(Re) {
+            var setCard = document.getElementById('myobj');
+            if (Re == "") Re = "错误:" + setCard.LastError;
+            this.input2 = Re;
+        },
+        XykFingerCheck() {
+            var setCard = document.getElementById('myobj');
+            var re = setCard.XykFingerCheck();
+            if (re == "") re = "错误:" + setCard.LastError;
+            this.input2 = re;
+        },
+        XykFingerCheckBeg() {
+             var setCard = document.getElementById('myobj');
+            var re = setCard.XykFingerCheckBeg();
+            if (re == "") re = "设置中..."; this.input2 = re;
+        },
+        ieXykFingerCheckEnd(Re) {
+             var setCard = document.getElementById('myobj');
+            if (Re == "") Re = "错误:" + setCard.LastError; this.input2 = Re;
+        },
         //表格数据格式化
         formatTableData(row, column) {
             if (column.property === "appointmentTeacher") {
@@ -1739,7 +1818,7 @@ export default {
         },
         //获取车辆列表
         getVehicles() {
-            let para = [this.schoolCode, "", "", this.page, 10000];
+            let para = [this.schoolCode, "", "", this.page, 10000, ""];
             request.basic.vehicle.queryList(para).then((res) => {
                 if (res.success === true) {
                     this.vehiclesData = [];
@@ -1768,12 +1847,16 @@ export default {
                 if (res.success === true) {
                     let data = res.object.list;
                     this.branchSchoolData = [];
-                    if (this.parentSchoolCode === 0) {
-                        data.unshift({
-                            schoolName: JSON.parse(sessionStorage.getItem("user")).schoolName,
-                            schoolCode: this.schoolCode
-                        });
-                    }
+                    this.branchSchoolData.push({
+                        label: JSON.parse(sessionStorage.getItem("user")).schoolName,
+                        value: this.schoolCode
+                    });
+                    // if (this.parentSchoolCode === 0) {
+                    //     data.unshift({
+                    //         schoolName: JSON.parse(sessionStorage.getItem("user")).schoolName,
+                    //         schoolCode: this.schoolCode
+                    //     });
+                    // }
                     for (let item in data) {
                         this.branchSchoolData.push({
                             label: data[item].schoolName,
@@ -1785,57 +1868,64 @@ export default {
         },
         //新增/编辑教练员/安全员/考核员
         createNew(target, flag) {
+            // console.log(this)
             if (target === "teacher") {
                 if (flag === "add") {
                     this.$refs["addCoachForm"].validate((valid) => {
                         if (valid) {
-                            if (this.image !== "") {
-                                let phonePara = {
-                                    teacherName: this.addCoachForm.teacherName,
-                                    phone: this.addCoachForm.phone,
-                                    gender: this.addCoachForm.gender,
-                                    photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
-                                }
-                                let objs = Object.assign({}, phonePara);
-                                request.basic.coach.create.photo.coach(objs).then((res) => {
-                                    if (res.success) {
-                                        this.addCoachForm.timerTeacherInfo.photosUrl = res.object.photosUrl;
-                                        this.addCoachForm.timerTeacherInfo.faceId = res.object.faceId;
-                                        this.addCoachForm.timerTeacherInfo.faceppId = res.object.faceppId;
-                                        this.addCoachForm.timerTeacherInfo.photosId = res.object.photosId;
-                                        this.addCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
+                            if(this.addCoachForm.timerTeacherInfo.useIccard == 'false'){
+                                // console.log()
+                                if (this.image !== "") {
+                                    let phonePara = {
+                                        teacherName: this.addCoachForm.teacherName,
+                                        phone: this.addCoachForm.phone,
+                                        gender: this.addCoachForm.gender,
+                                        photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
                                     }
+                                    let objs = Object.assign({}, phonePara);
+                                    request.basic.coach.create.photo.coach(objs).then((res) => {
+                                        if (res.success) {
+                                            this.addCoachForm.timerTeacherInfo.photosUrl = res.object.photosUrl;
+                                            this.addCoachForm.timerTeacherInfo.faceId = res.object.faceId;
+                                            this.addCoachForm.timerTeacherInfo.faceppId = res.object.faceppId;
+                                            this.addCoachForm.timerTeacherInfo.photosId = res.object.photosId;
+                                            this.addCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
+                                        }
+                                        onCreate(this);
+                                    });
+                                }
+                                else {
                                     onCreate(this);
-                                });
-                            }
-                            else {
+                                }
+                                
+                            }else{
+                                // this.showCard = true;
                                 onCreate(this);
                             }
                             function onCreate(that) {
-                                that.addCoachForm.appointmentTeacherInfo.carId = that.bindCar;
-                                that.addCoachForm.appointmentTeacherInfo.bindCar = that.$refs.bindCar.selectedLabel;
-                                that.addCoachForm.drivingLicenceTime = that.formatData(that.addCoachForm.drivingLicenceTime, "date", "yyyy-MM-dd");
-                                that.addCoachForm.inputDate = that.formatData(that.addCoachForm.inputDate, "date", "yyyy-MM-dd");
-                                that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
-                                let para = Object.assign({}, that.addCoachForm);
-                                    // console.warn(para);
-                                
-                                global.printLog(JSON.stringify(para));
-                                request.basic.coach.create.coach(para).then((res) => {
-                                    if (res.success) {
-                                        that.getTeachers();
-                                        that.resetForm("addCoachForm");
-                                        that.addCoachFormVisible = false;
-                                        that.$message({ message: "教练员添加成功！", type: "success" });
-                                    }
-                                    else {
-                                        that.addCoachForm.drivingLicenceTime = new Date(that.addCoachForm.drivingLicenceTime);
-                                        that.addCoachForm.inputDate = new Date(that.addCoachForm.inputDate);
-                                        that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
-                                        that.$message.error("教练员添加失败！原因：" + res.message);
-                                    }
-                                });
-                            }
+                                    console.info(that);
+                                    that.addCoachForm.appointmentTeacherInfo.carId = that.bindCar;
+                                    that.addCoachForm.appointmentTeacherInfo.bindCar = that.$refs.bindCar.selectedLabel;
+                                    that.addCoachForm.drivingLicenceTime = that.formatData(that.addCoachForm.drivingLicenceTime, "date", "yyyy-MM-dd");
+                                    that.addCoachForm.inputDate = that.formatData(that.addCoachForm.inputDate, "date", "yyyy-MM-dd");
+                                    that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
+                                    let para = Object.assign({}, that.addCoachForm);
+                                    global.printLog(JSON.stringify(para));
+                                    request.basic.coach.create.coach(para).then((res) => {
+                                        if (res.success) {
+                                            that.getTeachers();
+                                            that.resetForm("addCoachForm");
+                                            that.addCoachFormVisible = false;
+                                            that.$message({ message: "教练员添加成功！", type: "success" });
+                                        }
+                                        else {
+                                            that.addCoachForm.drivingLicenceTime = new Date(that.addCoachForm.drivingLicenceTime);
+                                            that.addCoachForm.inputDate = new Date(that.addCoachForm.inputDate);
+                                            that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
+                                            that.$message.error("教练员添加失败！原因：" + res.message);
+                                        }
+                                    });
+                                }
                         }
                     });
                 }
@@ -1861,6 +1951,8 @@ export default {
                                         this.editCoachForm.timerTeacherInfo.faceppId = res.object.faceppId;
                                         this.editCoachForm.timerTeacherInfo.photosId = res.object.photosId;
                                         this.editCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
+                                        // this.editCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
+                                       
                                         onUpdate(this);
                                     }
                                     else {
@@ -1910,7 +2002,8 @@ export default {
                                         "faceId": that.editCoachForm.timerTeacherInfo.faceId,
                                         "faceppId": that.editCoachForm.timerTeacherInfo.faceppId,
                                         "photosId": that.editCoachForm.timerTeacherInfo.photosId,
-                                        "proPhotosId": that.editCoachForm.timerTeacherInfo.proPhotosId
+                                        "proPhotosId": that.editCoachForm.timerTeacherInfo.proPhotosId,
+                                        "useIccard":that.editCoachForm.timerTeacherInfo.useIccard
                                     }
                                 }
                                 let para = Object.assign({}, updatePara);
@@ -2072,7 +2165,6 @@ export default {
                                 let para = Object.assign({}, that.addAssessorForm);
                                 global.printLog(JSON.stringify(para));
                                 request.basic.examiner.create.examiner(para).then((res) => {
-                                    // console.warn(para)
                                     global.printLog(res);
                                     if (res.success) {
                                         that.getExaminer();
@@ -2163,23 +2255,36 @@ export default {
             }
             else if (target === "leave") {
                 if (this.leaveType.label === "按天请假") {
-                    this.coachLeaveForm.beginTime = new Date(this.leaveType.day.begin).Format("yyyy-MM-dd");
-                    this.coachLeaveForm.endTime = new Date(this.leaveType.day.end).Format("yyyy-MM-dd");
+                    if (this.leaveType.day.begin === "" || this.leaveType.day.end === "") {
+                        this.$message.warning("请假开始日期和结束日期不能为空");
+                        return;
+                    }
+                    this.coachLeaveForm.beginTime = new Date(this.leaveType.day.begin).Format("yyyy-MM-dd 00:00:00");
+                    this.coachLeaveForm.endTime = new Date(this.leaveType.day.end).Format("yyyy-MM-dd") + " 23:59:59";
                 }
                 else {
+                    if (this.leaveType.day.beginTime === "" || this.leaveType.day.endTime === "") {
+                        this.$message.warning("请假开始时间和结束时间不能为空");
+                        return;
+                    }
                     this.coachLeaveForm.beginTime = new Date(this.leaveType.time.begin).Format("yyyy-MM-dd HH:mm:ss");
                     this.coachLeaveForm.endTime = new Date(this.leaveType.time.end).Format("yyyy-MM-dd HH:mm:ss");
                 }
-                let objs = Object.assign({}, this.coachLeaveForm);
-                request.basic.coach.create.teacherLeave(objs).then((res) => {
-                    if (res.success) {
-                        this.coachLeaveFormVisible = false;
-                        this.$message({ message: "请假成功！", type: "success" });
-                    }
-                    else {
-                        this.$message.error("请假失败！原因：" + res.message);
-                    }
-                });
+                if (new Date(this.coachLeaveForm.beginTime).getTime() > new Date(this.coachLeaveForm.endTime).getTime()) {
+                    this.$message.warning("请假开始时间不能大于结束时间");
+                }
+                else {
+                    let objs = Object.assign({}, this.coachLeaveForm);
+                    request.basic.coach.create.teacherLeave(objs).then((res) => {
+                        if (res.success) {
+                            this.coachLeaveFormVisible = false;
+                            this.$message({ message: "请假成功！", type: "success" });
+                        }
+                        else {
+                            this.$message.error("请假失败！原因：" + res.message);
+                        }
+                    });
+                }
             }
         },
         //查询教练员
@@ -2200,18 +2305,25 @@ export default {
         //查询教练员详情
         getTeachersDetail(id) {
             request.basic.coach.query.detail(id).then((res) => {
-                   console.info(res.object);
                 if (res.success === true) {
                     let data = res.object;
                     global.printLog(data);
+                    // console.info(data);
+                    // this.datas.province = data.province;
+                    // this.datas.provinceName = data.provinceName;
+                    // this.datas.city = data.city;
+                    // this.datas.cityName = data.cityName;
+                    // this.datas.county = data.county;
+                    // this.datas.countyName = data.countyName;
                     this.detailTeacher = data;
                     this.detailTeacher.regionName = global.convertToString(data.provinceName) + "" + global.convertToString(data.cityName) + "" + global.convertToString(data.countyName);
                     this.detailTeacher.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
                     this.editCoachForm = data;
+                    this.editCoachForm.timerTeacherInfo.useIccard = data.timerTeacherInfo.useIccard.toString();
                     this.selectedUnitOptions = [];
-                    this.editCoachForm.inputDate = new Date(data.inputDate);
+                    this.editCoachForm.inputDate = data.inputDate === null ? "" : new Date(data.inputDate);
                     this.editCoachForm.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
-                    this.editCoachForm.drivingLicenceTime = new Date(data.drivingLicenceTime);
+                    this.editCoachForm.drivingLicenceTime = data.drivingLicenceTime === null ? "" : new Date(data.drivingLicenceTime);
                     this.editCoachForm.drivingCarType = data.drivingCarType;
                     this.editCoachForm.teachCarType = data.teachCarType;
                     this.editCoachForm.gender = global.convertToString(data.gender);
@@ -2249,10 +2361,9 @@ export default {
         getSecurityGuardDetail(id) {
             let para = [id];
             request.basic.securityGuard.query.detail(para).then((res) => {
-                // console.info(res.object);           
                 if (res.success === true) {
                     let data = res.object;
-                    global.printLog(data);
+                    global.printLog(JSON.stringify(data));
                     this.detailsSO = data;
                     this.detailsSO.regionName = global.convertToString(data.provinceName) + "" + global.convertToString(data.cityName) + "" + global.convertToString(data.countyName);
                     this.detailsSO.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
@@ -2261,8 +2372,8 @@ export default {
                     this.editSOForm.gender = global.convertToString(data.gender);
                     this.editSOForm.workState = global.convertToString(data.workState);
                     this.editSOForm.vocationalLevel = global.convertToString(data.vocationalLevel);
-                    this.editSOForm.inputDate = new Date(data.inputDate);
-                    this.editSOForm.drivingLicenceTime = new Date(data.drivingLicenceTime);
+                    this.editSOForm.inputDate = data.inputDate === null ? "" : new Date(data.inputDate);
+                    this.editSOForm.drivingLicenceTime = data.drivingLicenceTime === "" || data.drivingLicenceTime === null ? "" : new Date(data.drivingLicenceTime);
                     this.editSOForm.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
                 }
             });
@@ -2286,7 +2397,6 @@ export default {
         getExaminerDetail(id) {
             let para = [id];
             request.basic.examiner.query.detail(para).then((res) => {
-            //    console.info(res.object);
                 if (res.success === true) {
                     let data = res.object;
                     global.printLog(data);
@@ -2295,13 +2405,13 @@ export default {
                     this.detailsAssessor.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
                     this.editAssessorForm = data;
                     this.image = data.photosUrl;
-                    this.editAssessorForm.drivingCarType = parseInt(data.drivingCarType);
-                    this.editAssessorForm.teachCarType = parseInt(data.teachCarType);
+                    this.editAssessorForm.drivingCarType = data.drivingCarType === null ? "" : parseInt(data.drivingCarType);
+                    this.editAssessorForm.teachCarType = data.teachCarType === null ? "" : parseInt(data.teachCarType);
                     this.editAssessorForm.gender = global.convertToString(data.gender);
                     this.editAssessorForm.workState = global.convertToString(data.workState);
                     this.editAssessorForm.vocationalLevel = global.convertToString(data.vocationalLevel);
-                    this.editAssessorForm.inputDate = new Date(data.inputDate);
-                    this.editAssessorForm.drivingLicenceTime = new Date(data.drivingLicenceTime);
+                    this.editAssessorForm.inputDate = data.inputDate === null ? "" : new Date(data.inputDate);
+                    this.editAssessorForm.drivingLicenceTime = data.drivingLicenceTime === null ? "" : new Date(data.drivingLicenceTime);
                     this.editAssessorForm.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
                 }
             });
@@ -2461,6 +2571,7 @@ export default {
                         faceId: 0,
                         faceppId: "",
                         photosId: 0,
+                        useIccard:'false',
                         proPhotosId: 0
                     }
                 };
@@ -2503,7 +2614,7 @@ export default {
                     phone: "",
                     province: "",
                     city: "",
-                    county: "",
+                    county: "510104",
                     qq: "",
                     address: "",
                     photosUrl: "",
@@ -2690,13 +2801,21 @@ export default {
                 $("#webcam").children().remove();
             }
             if (!this.coachNewClassFormVisible) {
-                let list = this.dateList;
-                for (var i = 0, len = list.length; i < len; i++) {
-                    list[i].click = false;
-                }
-                list[0].click = true;
+                // let list = this.dateList;
+                // for (var i = 0, len = list.length; i < len; i++) {
+                //     list[i].click = false;
+                // }
+                // list[0].click = true;
                 this.filters.classes.stage = "2";
                 this.filters.classes.date = new Date().Format("yyyy-MM-dd");
+            }
+            if (!this.coachLeaveFormVisible) {
+                this.leaveType.time.begin = "";
+                this.leaveType.day.begin = "";
+                this.leaveType.time.end = "";
+                this.leaveType.day.end = "";
+                this.leaveType.label = "按天请假";
+                this.coachLeaveForm.comments = "";
             }
         },
         //Dialog被打开回调
@@ -3001,35 +3120,36 @@ export default {
             global.downloadExl(jsono, filename, "");
         },
         listenData(result, tag) {
+            console.warn(result)
             if (this.addCoachFormVisible) {
-                this.addCoachForm.province = result[0];
-                this.addCoachForm.city = result[1];
-                this.addCoachForm.county = result[2];
+                this.addCoachForm.province = result[0].province.code;
+                this.addCoachForm.city = result[0].city.code;
+                this.addCoachForm.county = result[0].code;
             }
             else if (this.editCoachFormVisible) {
-                this.editCoachForm.province = result[0];
-                this.editCoachForm.city = result[1];
-                this.editCoachForm.county = result[2];
+                this.editCoachForm.province = result[0].province.code;
+                this.editCoachForm.city = result[0].city.code;
+                this.editCoachForm.county = result[0].code;
             }
             else if (this.addSOFormVisible) {
-                this.addSOForm.province = result[0];
-                this.addSOForm.city = result[1];
-                this.addSOForm.county = result[2];
+                this.addSOForm.province = result[0].province.code;
+                this.addSOForm.city = result[0].city.code;
+                this.addSOForm.county = result[0].code;
             }
             else if (this.editSOFormVisible) {
-                this.editSOForm.province = result[0];
-                this.editSOForm.city = result[1];
-                this.editSOForm.county = result[2];
+                this.editSOForm.province = result[0].province.code;
+                this.editSOForm.city = result[0].city.code;
+                this.editSOForm.county = result[0].code;
             }
             else if (this.addAssessorFormVisible) {
-                this.addAssessorForm.province = result[0];
-                this.addAssessorForm.city = result[1];
-                this.addAssessorForm.county = result[2];
+                this.addAssessorForm.province = result[0].province.code;
+                this.addAssessorForm.city = result[0].city.code;
+                this.addAssessorForm.county = result[0].code;
             }
             else if (this.editAssessorFormVisible) {
-                this.editAssessorForm.province = result[0];
-                this.editAssessorForm.city = result[1];
-                this.editAssessorForm.county = result[2];
+                this.editAssessorForm.province = result[0].province.code;
+                this.editAssessorForm.city = result[0].city.code;
+                this.editAssessorForm.county = result[0].code;
             }
         },
         teacherTypeChange(val) {
@@ -3067,16 +3187,16 @@ export default {
         PCA
     },
     created() {
-        this.dateList = global.getDays(new Date().Format("yyyy-MM-dd"), 100);
-        this.dateList[0].click = true;
+        // this.dateList = global.getDays(new Date().Format("yyyy-MM-dd"), 100);
+        // this.dateList[0].click = true;
     },
     activated() {
         global.printLog("activated every one");
         this.queryModel();
         this.getCarType();
+        this.getBranchSchool();
         this.getVehicles();
         this.getDepartment();
-        this.getBranchSchool();
         this.teacherTypeChange(this.radioHeaderSel);
     },
     mounted() {
@@ -3091,3 +3211,113 @@ export default {
 }
 
 </script>
+
+<style scope lang="scss">
+.el-dialog__body {
+    padding: 0 20px;
+    .el-dialog__header {
+        padding: 20px 20px 20px;
+    }
+}
+
+.leaveForm {
+    margin-top: 20px;
+    .el-date-editor.el-input,
+    .el-textarea__inner {
+        width: 300px;
+    }
+}
+
+.wall {
+    border: 1px solid #E7EBED;
+    margin: 0;
+    border-right: 0;
+}
+
+.wall .data-header {
+    height: 64px;
+    width: 100%;
+}
+
+.wall .data-header .left-header {
+    width: 100px;
+    float: left;
+    display: inline-block;
+    border-right: 1px solid #E7EBED;
+}
+
+.wall .data-header .left-header div.back-slant {
+    width: 100px;
+    height: 63px;
+    position: relative;
+    background-color: transparent;
+}
+
+.wall .data-header .left-header div.back-slant span.time {
+    left: 55px;
+    top: 8px;
+}
+
+.wall .data-header .left-header div.back-slant span.coach {
+    left: 18px;
+    top: 35px;
+}
+
+.wall .data-header .left-header div.back-slant span {
+    position: absolute;
+    z-index: 999;
+    font-size: 14px;
+    color: #8799AB;
+}
+
+.wall .data-header .left-header div.back-slant:before {
+    position: absolute;
+    top: 0px;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    border-bottom: 63px solid #E7EBED;
+    border-right: 101px solid transparent;
+    content: "";
+}
+
+.wall .data-header .left-header div.back-slant:after {
+    position: absolute;
+    left: 0;
+    right: 1px;
+    top: 1px;
+    bottom: 0;
+    border-bottom: 63px solid #FFF;
+    border-right: 101px solid transparent;
+    content: "";
+}
+
+.wall .data-header .right-top {
+    float: left;
+    display: inline-block;
+    height: 64px;
+}
+
+.wall .data-header .right-top .week-row {
+    height: 64px;
+    width: 100%;
+    border-bottom: 1px solid #E7EBED;
+}
+
+.wall .data-header .right-top .week-row span {
+    height: 20px;
+    line-height: 40px;
+    display: block;
+}
+
+.wall .data-header .right-top .week-row a {
+    display: inline-block;
+    height: 53px;
+    text-align: center;
+    text-decoration: none;
+    color: #8799ab;
+    float: left;
+    border-right: 1px solid #E7EBED;
+    padding: 6px 30px;
+}
+</style>

@@ -24,7 +24,6 @@ import VueHighcharts from 'vue-highcharts';
 import NoDataToDisplay from 'highcharts/modules/no-data-to-display.src';
 import Highcharts from 'highcharts/highstock';
 // import loadDrilldown from 'highcharts/modules/drilldown';
-
 NoDataToDisplay(Highcharts)
 
 // 引入Vue路由
@@ -34,7 +33,7 @@ import VueRouter from "vue-router"
 import routes from "./routes"
 
 // 引入高德地图
-// import AMap from "vue-amap";
+import AMap from "vue-amap";
 
 // 引入App主入口
 import App from "./App.vue"

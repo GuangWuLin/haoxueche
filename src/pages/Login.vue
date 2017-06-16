@@ -66,7 +66,7 @@ export default {
             }
             sessionStorage.setItem("user", JSON.stringify(para));
             //this.$store.state.user = object;
-            this.$router.replace({ path: "/student" });
+            this.$router.replace({ path: "/vehicle" });
           }
         });
       }
@@ -74,11 +74,12 @@ export default {
   },
   mounted() {
     setTimeout(() => { initParticles(); }, 300);
-    document.addEventListener("keydown", (evt) => {
-      if (evt.keyCode == 13) {
-        this.PostLogin();
-      }
-    });
+    // document.addEventListener("keydown", (evt) => {
+    //   if (evt.keyCode == 13) {
+    //     console.log("登录中...");
+    //     this.PostLogin();
+    //   }
+    // });
   }
 }
 

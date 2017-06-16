@@ -12,11 +12,11 @@
                             <el-option label="科目三" value="3"></el-option>
                             <el-option label="科目四" value="4"></el-option>
                         </el-select>
-                        <el-date-picker type="daterange" placeholder="选择日期范围" v-model="filters.dateRange" @change="getTimes" format="yyyy-MM-dd">
+                        <el-date-picker type="daterange" placeholder="选择日期范围" v-model="filters.dateRange" @change="getTimes" format="yyyy-MM-dd" :editable="false">
                         </el-date-picker>
                         <el-input class="search-input mr40" placeholder="输入学员姓名" icon="search" :on-icon-click="getTimes" v-model="filters.keyWord"></el-input>
                         <!--<el-button type="primary" @click="" class="mr10">上传监管平台</el-button>
-                            <el-button type="primary" @click="">导出数据</el-button>-->
+                                <el-button type="primary" @click="">导出数据</el-button>-->
                     </el-form-item>
                 </el-form>
             </el-col>
@@ -138,10 +138,10 @@
                     </el-row>
                     <el-row>
                         <el-col :span="6">
-                            <span>最高时速：{{times.detailsForm.maxSpeed}}(km/h)</span>
+                            <span>最高时速：{{times.detailsForm.maxSpeed/10}}(km/h)</span>
                         </el-col>
                         <el-col :span="6">
-                            <span>最低时速：{{times.detailsForm.minSpeed}}(km/h)</span>
+                            <span>最低时速：{{times.detailsForm.minSpeed/10}}(km/h)</span>
                         </el-col>
                         <el-col :span="6">
                             <span>平均时速：{{times.detailsForm.avgSpeed}}(km/h)</span>
@@ -363,22 +363,20 @@ export default {
                             completePercent: 0
                         }]
                     }
-                    if (res.object.subjectType === 1) {
-                        request.basic.student.query.timeTraceInfo(studentId).then((res) => {
-                            if (res.success) {
-                                let data = res.object;
-                                this.times.detailsForm.timeTracking = [];
-                                global.printLog(data);
-                                for (let item in data) {
-                                    this.times.detailsForm.timeTracking.push({
-                                        lowestTime: data[item].lowestTime,
-                                        completeTime: data[item].completeTime,
-                                        completePercent: parseInt(data[item].completePercent)
-                                    });
-                                }
+                    request.basic.student.query.timeTraceInfo(studentId).then((res) => {
+                        if (res.success) {
+                            let data = res.object;
+                            this.times.detailsForm.timeTracking = [];
+                            global.printLog(data);
+                            for (let item in data) {
+                                this.times.detailsForm.timeTracking.push({
+                                    lowestTime: data[item].lowestTime,
+                                    completeTime: data[item].completeTime,
+                                    completePercent: parseInt(data[item].completePercent)
+                                });
                             }
-                        });
-                    }
+                        }
+                    });
                     this.times.detailsFormVisible = true;
                 }
             });
@@ -395,8 +393,8 @@ export default {
                     for (let item in data) {
                         this.classRecordMin.data.push({
                             studyTime: data[item].studyTime,
-                            maxSpeed: data[item].maxSpeed,
-                            recordSpeed: data[item].recordSpeed,
+                            maxSpeed: data[item].maxSpeed/10,
+                            recordSpeed: data[item].recordSpeed/10,
                             engineSpeed: data[item].engineSpeed,
                             minMileage: data[item].minMileage,
                             state: data[item].state === 0 ? "正常" : "异常",
@@ -458,6 +456,7 @@ export default {
         rowClick(row, evt, column) {
             if (column.type === "default") {
                 global.printLog(row);
+                this.radioType = "照片";
                 this.getTimesDetailById(row);
             }
             else { }
@@ -479,7 +478,8 @@ export default {
                     zoom: 17,
                     center: [global.map.center.lat, global.map.center.lng]
                 });
-                this.getClassRecordGPS([this.schoolCode, this.curRow.deviceId, this.curRow.beginTime, this.curRow.endTime]);
+                console.log(this.curRow);
+                this.getClassRecordGPS([this.schoolCode, this.curRow.sim, this.curRow.beginTime, this.curRow.endTime]);
             }, 100);
         },
         setMap() {

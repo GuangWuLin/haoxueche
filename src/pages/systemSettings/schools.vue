@@ -2,7 +2,7 @@
     <section v-loading="pageLoading">
         <!--列表-->
         <el-row class="mb20">
-            <el-button type="primary" @click="branchSchoolFormVisible = true" class="right">添加分校</el-button>
+            <el-button type="primary" @click="branchSchoolFormVisible = true" class="right" :disabled="createBranchSchool">添加分校</el-button>
             <el-col :span="24" class="mt20">
                 <!--列表-->
                 <el-table :data="branchSchool">
@@ -109,8 +109,19 @@ export default {
             },
             branchSchoolFormRules: {
                 name: [
-                    { required: true, message: "请填写分校操作员", trigger: "blur" },
-                    { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
+                    {
+                        required: true,
+                        validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写分校操作员名称"));
+                            }
+                            if (!global.fieldVerification.IsChinese(value)) {
+                                return callback(new Error("操作员名称格式不正确，只能为中文"));
+                            }
+                            callback();
+                        }, trigger: "blur|change"
+                    },
+                    { max: 15, message: "名称长度不能超过15个中文", trigger: "blur" }
                 ],
                 idNumber: [
                     {
@@ -141,20 +152,56 @@ export default {
                     }
                 ],
                 schoolName: [
-                    { required: true, message: "请填写分校名称", trigger: "blur" },
-                    { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
+                    {
+                        required: true,
+                        validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写分校名称"));
+                            }
+                            if (!global.fieldVerification.IsChinese(value)) {
+                                return callback(new Error("分校名称格式不正确，只能为中文"));
+                            }
+                            callback();
+                        }, trigger: "blur|change"
+                    },
+                    { max: 20, message: "名称长度不能超过20个中文", trigger: "blur" }
+                    // { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
                 ],
                 contact: [
-                    { required: true, message: "请填写分校负责人", trigger: "blur" },
-                    { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
+                    {
+                        required: true,
+                        validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写分校负责人名称"));
+                            }
+                            if (!global.fieldVerification.IsChinese(value)) {
+                                return callback(new Error("负责人名称格式不正确，只能为中文"));
+                            }
+                            callback();
+                        }, trigger: "blur|change"
+                    },
+                    { max: 15, message: "名称长度不能超过15个中文", trigger: "blur" }
+                    // { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
                 ],
                 schoolAddress: [
-                    { required: true, message: "请填写分校地址", trigger: "blur" },
-                    { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
+                    { required: true, message: "请填写分校地址", trigger: "blur" }
+                    // { min: 2, max: 5, message: "长度在2到5个字符", trigger: "blur" }
                 ],
                 password: [
-                    { required: true, message: "请填写密码", trigger: "blur" },
-                    { min: 6, max: 12, message: "长度在6到12个字符", trigger: "blur" }
+                    {
+                        required: true,
+                        validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写密码"));
+                            }
+                            //判断只能输入数字+字母
+                            var reg = /(?!^\d+$)(?!^[a-zA-Z]+$)[0-9a-zA-Z]{6,16}/;
+                            if (!reg.test(value)) {
+                                return callback(new Error("密码必须是6到16个字母和数字组合"));
+                            }
+                            callback();
+                        }, trigger: "blur"
+                    }
                 ],
                 province: [
                     { required: true, message: "请选择所在省", trigger: "change" }
@@ -166,7 +213,8 @@ export default {
             provinceData: [],
             cityData: [],
             filterText: "",
-            defaultAuthority: []
+            defaultAuthority: [],
+            createBranchSchool: JSON.parse(sessionStorage.getItem("user")).parentSchoolCode === 0 ? false : true
         }
     },
     methods: {
@@ -212,6 +260,7 @@ export default {
                     if (res.success === true) {
                         this.pageLoading = false;
                         let data = res.object;
+                        console.log(data);
                         this.total = data.num;
                         this.branchSchool = data.list;
                     }

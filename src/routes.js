@@ -50,23 +50,26 @@ import Price from "./pages/backstageManagement/price.vue"
 import FinanceReceipt from "./pages/backstageManagement/financeReceipt.vue"
 import FinanceReview from "./pages/backstageManagement/financeReview.vue"
 
+/* 报表中心 */
+import Business from "./pages/statisticalReport/business.vue"
+
+
 /*增值服务*/
 // 服务总览
 import Pandect from "./pages/addService/pandect.vue"
 // 服务管理
 import Manager from "./pages/addService/manager.vue"
 
-/* 报表中心 */
-import Business from "./pages/statisticalReport/business.vue"
-
-/* Testing */
-import Test from "./pages/Test.vue"
-
 /*理论教学 */
 //理论教室
 import Classroom from "./pages/teaching/classroom.vue"
 //理论设备
 import Device from "./pages/teaching/device.vue"
+
+/* Testing */
+import Test from "./pages/Test.vue"
+
+
 
 export default [
 	{ path: "/error", component: Error, name: "错误", meta: { requireAuth: false }, hidden: true },
@@ -185,20 +188,20 @@ export default [
 		path: "/",
 		component: Home,
 		name: "增值服务",
-		iconCls: "glyph-icon icon-jiageshezhi",
+		iconCls: "glyph-icon icon-zengzhi-fuwu",
 		children: [
-			{ path: "/Pandect", component: Pandect, name: "服务总览", iconCls: "glyph-icon icon-yuyueqiang", meta: { requireAuth: true } },
-			{ path: "/Manager", component: Manager, name: "服务管理", iconCls: "glyph-icon icon-yuyuejilu", meta: { requireAuth: true } },
+			{ path: "/pandect", component: Pandect, name: "服务总览", iconCls: "glyph-icon icon-fuwu-zonglan", meta: { requireAuth: true } },
+			{ path: "/manager", component: Manager, name: "服务管理", iconCls: "glyph-icon icon-fuwu-guanli", meta: { requireAuth: true } },
 		]
 	},
-	{
+		{
 		path: "/",
 		component: Home,
 		name: "理论教学",
-		iconCls: "glyph-icon icon-fenxiaoguanli",
+		iconCls: "glyph-icon icon-lilun-jiaoxue",
 		children: [
-			{ path: "/Classroom", component: Classroom, name: "理论教室", iconCls: "glyph-icon icon-jiaoshi", meta: { requireAuth: true } },
-			{ path: "/Device", component: Device, name: "理论设备", iconCls: "glyph-icon icon-dongtaijiankong", meta: { requireAuth: true } },
+			{ path: "/classroom", component: Classroom, name: "理论教室", iconCls: "glyph-icon icon-lilun-jiaoshi", meta: { requireAuth: true } },
+			{ path: "/device", component: Device, name: "理论设备", iconCls: "glyph-icon icon-lilun-shebei", meta: { requireAuth: true } },
 		]
 	},
 	{

@@ -7,11 +7,7 @@
                 <el-form :inline="true" :model="filters">
                     <el-col :span="12">
                         <el-form-item>
-                            <el-input class="search-input" v-model="filters.keyword" placeholder="输入学员姓名、电话" icon="search" :on-icon-click="getReservation" @keyup.enter.native="getReservation"></el-input>
-                            <!--<el-select v-model="status" placeholder="请选择">
-                                            <el-option v-for="item in options" :label="item.label" :value="item.value">
-                                            </el-option>
-                                        </el-select>-->
+                            <el-input class="search-input" v-model="filters.keyword" placeholder="输入学员姓名、电话" icon="search" :on-icon-click="getReservation"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-dropdown @command="handleCommand" class="right">
@@ -26,15 +22,9 @@
                 </el-form>
             </el-col>
             <!--列表-->
-            <!--
-                            状态：
-                                培训中/已评价，操作栏为空；
-                                未开始，操作栏为取消预约；
-                                已培训，操作栏为帮TA评价
-                        -->
             <el-table :data="reservation" highlight-current-row @row-click="rowClick">
                 <!--<el-table-column type="selection" width="55" @click.stop="">
-                            </el-table-column>-->
+                                                        </el-table-column>-->
                 <el-table-column prop="teacherName" label="教练">
                 </el-table-column>
                 <el-table-column prop="studentPhone" label="学员电话">
@@ -60,7 +50,7 @@
             <el-pagination layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="recording.pageSize" :total="recording.total">
             </el-pagination>
         </el-row>
-        <el-dialog title="预约详情" v-model="reservationFormVisible" :close-on-click-modal="false" size="full">
+        <el-dialog title="预约详情" v-model="reservationFormVisible" :close-on-click-modal="false" size="full" @close="handleDialogClose">
             <p class="group-title">预约信息</p>
             <el-row class="reservation" v-model="reservationData">
                 <el-col :span="4">
@@ -90,7 +80,7 @@
                 <el-col :span="5">
                     <div class="col">
                         <p>扣除</p>
-                        <p>{{reservationData.realityDeduct}}/1学时</p>
+                        <p>{{reservationData.realityDeduct}}</p>
                     </div>
                 </el-col>
                 <el-col :span="24" class="t-right">
@@ -119,7 +109,7 @@
                         评价内容
                     </el-col>
                     <el-col :span="20">
-                        <el-input type="textarea" auto-complete="off" v-model="reservationData.comments" disabled :rows="4" resize="none"></el-input>
+                        <el-input type="textarea" auto-complete="off" v-model="reservationData.comments" readonly :autosize="true" resize="none"></el-input>
                     </el-col>
                 </el-row>
                 <el-row>
@@ -135,7 +125,9 @@
                 <el-form v-model="appraisal">
                     <el-row>
                         <el-col :span="2">
-                            综合评星
+                            <span class="rate_validate_class">
+                                综合评星
+                            </span>
                         </el-col>
                         <el-col :span="20">
                             <el-rate v-model="appraisal.score" @change="handleRateChange"></el-rate>
@@ -143,7 +135,7 @@
                     </el-row>
                     <el-row>
                         <el-col :span="2">
-                            评价内容
+                            <span class="ml15">评价内容</span>
                         </el-col>
                         <el-col :span="20">
                             <el-input type="textarea" auto-complete="off" v-model="appraisal.comments" :rows="4" resize="none"></el-input>
@@ -151,7 +143,7 @@
                     </el-row>
                     <el-row>
                         <el-col :span="2">
-                            教练印象
+                            <span class="ml15">教练印象</span>
                         </el-col>
                         <el-col :span="20">
                             <el-checkbox-group v-model="appraisal.impressionTags">
@@ -161,7 +153,7 @@
                     </el-row>
                     <el-row>
                         <el-col :span="2">
-                            匿名评价
+                            <span class="ml15">匿名评价</span>
                         </el-col>
                         <el-col :span="20">
                             <el-switch v-model="appraisal.isNickName" on-color="#13ce66" off-color="#999"></el-switch>
@@ -209,6 +201,11 @@
 
 .hasReservation,
 .trained {
+    .rate_validate_class:before {
+        content: "*";
+        color: #ff4949;
+        margin-right: 4px;
+    }
     .el-tag {
         padding: 0 10px;
         height: 28px;
@@ -368,6 +365,14 @@ export default {
         },
         //提交评价
         handleSave() {
+            if (this.appraisal.score < 1) {
+                this.$message.warning({ message: "提交评价前请先打分" });
+                return;
+            }
+            else if (this.appraisal.comments.length > 200) {
+                this.$message.warning({ message: "评论内容字数不能超过200" });
+                return;
+            }
             let para = {
                 schoolCode: this.schoolCode,
                 studentId: this.reservationData.studentId,
@@ -412,6 +417,7 @@ export default {
         },
         //打星获取标签
         handleRateChange(val) {
+            if (val === 0) { return; }
             if (val < 3) {
                 this.impressionTags = global.enums.impression.difference;
             }
@@ -429,7 +435,14 @@ export default {
                 downLink.setAttribute("href", request.baseUrl + "/appointmentrecord/exportAppointmentRecord?keyWord=" + this.filters.keyword + "&schoolCode=" + this.schoolCode);
                 downLink.click();
             }
-        }
+        },
+        handleDialogClose() {
+            this.appraisal.score = 0;
+            this.appraisal.comments = "";
+            this.impressionTags = [];
+            this.appraisal.isNickName = false;
+            this.appraisal.impressionTags = [];
+        },
     },
     activated() {
         global.printLog("activated every one");

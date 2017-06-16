@@ -112,7 +112,38 @@ var global = {
                 21: "教练签退"
             }
         },
-        //17学员签到 18学员签退 5定时拍照 19培训过程中拍照
+        picUploadStatus: {
+            10: "已拍照",
+            20: "未上报",
+            30: "上报中",
+            40: "上报成功",
+            50: "上报失败"
+        },
+        services: {
+            status: {
+                to_do: "审核中",
+                fail: "审核失败",
+                normal: "已开通",
+                stop: "停止服务"
+            }
+        },
+        record: {
+            status: {
+                device: "设备",
+                camera: "摄像头",
+                sign_in: "正在签到",
+                halfway: "正在过程签到",
+                sign_out: "正在签退",
+                post_doing: "正在培训",
+                pre_doing: "正在培训",
+                done: "培训完成",
+                success: "成功",
+                fail: "失败",
+                review_success: "复审成功",
+                review_fail: "复审失败",
+                teacher_sign_out: "正在教练签退"
+            }
+        }
     },
     //下拉选项值
     options: {
@@ -709,7 +740,7 @@ var global = {
                 type: ""
             }); //创建二进制对象写入转换好的字节流
         var href = URL.createObjectURL(tmpDown); //创建对象超链接
-        // console.log(href);
+        console.log(href);
         return;
         document.getElementById("down-link").setAttribute("href", href); //绑定a标签
         document.getElementById("down-link").setAttribute("download", filename + ".xlsx");

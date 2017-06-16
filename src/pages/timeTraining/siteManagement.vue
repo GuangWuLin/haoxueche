@@ -29,7 +29,7 @@
                 </el-table-column>
                 <el-table-column label="操作">
                     <template scope="scope">
-                        <el-button type="text" size="small" @click.stop="handleOperator(scope.row,1)" :disabled="scope.row.status==='DOING'">审核</el-button>
+                        <el-button type="text" size="small" @click.stop="handleOperator(scope.row,1)" :disabled="scope.row.status!=='UN_DO'">审核</el-button>
                         <el-button type="text" size="small" @click.stop="handleOperator(scope.row,2)" :disabled="scope.row.status==='DOING'">修改</el-button>
                         <el-button type="text" size="small" @click.stop="handleOperator(scope.row,3)" :disabled="scope.row.status==='DOING'">删除</el-button>
                     </template>
@@ -81,7 +81,7 @@
         </el-dialog>
         <!--新增场地界面-->
         <el-dialog title="新增场地" v-model="newSiteFormVisible" :close-on-click-modal="false" size="full" @close="handleDialogClose">
-            <el-form :model="newSiteForm" ref="newSiteForm" :inline="true" class="demo-form-inline newSiteForm" label-width="105px">
+            <el-form v-if="newSiteFormVisible" :model="newSiteForm" :rules="siteFormRule" ref="newSiteForm" :inline="true" class="demo-form-inline newSiteForm" label-width="115px">
                 <p class="group-title">设置围栏</p>
                 <el-row>
                     <div id="mapContainer"></div>
@@ -95,15 +95,10 @@
                         <el-select v-model="newSiteForm.stage" placeholder="请选择培训部分">
                             <el-option label="科目二" value="PART_2"></el-option>
                             <el-option label="科目三" value="PART_3"></el-option>
-                            <!--<el-option v-for="item in trainingStageOptions" :label="item.label" :value="item.value">
-                                                                                                                                                                </el-option>-->
                         </el-select>
                     </el-form-item>
                     <el-form-item label="面积(平方米)" prop="area">
                         <el-input v-model="newSiteForm.area" placeholder="面积(平方米)"></el-input>
-                    </el-form-item>
-                    <el-form-item label="地址" prop="address">
-                        <el-input v-model="newSiteForm.address" placeholder="地址"></el-input>
                     </el-form-item>
                     <el-form-item label="容纳车辆数" prop="maxCarNum">
                         <el-input v-model="newSiteForm.maxCarNum" placeholder="容纳车辆数"></el-input>
@@ -111,10 +106,13 @@
                     <el-form-item label="投放车辆数" prop="realCarNum">
                         <el-input v-model="newSiteForm.realCarNum" placeholder="投放车辆数"></el-input>
                     </el-form-item>
-                    <el-form-item label="培训车型" class="addr" prop="sex">
+                    <el-form-item label="培训车型" class="addr" prop="teachType">
                         <el-select v-model="newSiteForm.teachType" multiple placeholder="请选择培训车型" style="width:814px;">
                             <el-option v-for="item in teachTypeOptions" :label="item.label" :value="item.value"></el-option>
                         </el-select>
+                    </el-form-item>
+                    <el-form-item label="地址" class="addr" prop="address">
+                        <el-input v-model="newSiteForm.address" placeholder="地址"></el-input>
                     </el-form-item>
                 </el-row>
             </el-form>
@@ -125,7 +123,7 @@
         </el-dialog>
         <!--新增场地界面-->
         <el-dialog title="编辑场地" v-model="editSiteFormVisible" :close-on-click-modal="false" size="full" @close="handleDialogClose">
-            <el-form :model="editSiteForm" ref="editSiteForm" :inline="true" class="demo-form-inline newSiteForm" label-width="105px">
+            <el-form v-if="editSiteFormVisible" :model="editSiteForm" :rules="siteFormRule" ref="editSiteForm" :inline="true" class="demo-form-inline newSiteForm" label-width="115px">
                 <p class="group-title">设置围栏</p>
                 <el-row>
                     <div id="mapContainer2"></div>
@@ -145,11 +143,8 @@
                     <el-form-item label="面积(平方米)" prop="area">
                         <el-input v-model="editSiteForm.area" placeholder="面积(平方米)"></el-input>
                     </el-form-item>
-                    <el-form-item label="地址" prop="address">
-                        <el-input v-model="editSiteForm.address" placeholder="地址"></el-input>
-                    </el-form-item>
                     <el-form-item label="容纳车辆数" prop="maxCarNum">
-                        <el-input v-model="editSiteForm.maxCarNum" placeholder="容纳车辆数"></el-input>
+                        <el-input v-model="editSiteForm.maxCarNum" placeholder="容纳车辆数" ref="maxCarNum" @change="handleInputChange"></el-input>
                     </el-form-item>
                     <el-form-item label="投放车辆数" prop="realCarNum">
                         <el-input v-model="editSiteForm.realCarNum" placeholder="投放车辆数"></el-input>
@@ -158,6 +153,9 @@
                         <el-select v-model="editSiteForm.teachType" multiple placeholder="请选择培训车型" style="width:814px;">
                             <el-option v-for="item in teachTypeOptions" :label="item.label" :value="item.value"></el-option>
                         </el-select>
+                    </el-form-item>
+                    <el-form-item label="地址" class="addr" prop="address">
+                        <el-input v-model="editSiteForm.address" placeholder="地址"></el-input>
                     </el-form-item>
                 </el-row>
             </el-form>
@@ -211,9 +209,59 @@ export default {
                 area: "",
                 address: "",
                 teachType: [],
-                maxCarNum: "",
-                realCarNum: "",
+                maxCarNum: 1,
+                realCarNum: 1,
                 points: []
+            },
+            //name stage area address maxCarNum realCarNum teachType
+            siteFormRule: {
+                name: [
+                    { required: true, message: "请填写场地名称", trigger: "blur" }
+                ],
+                stage: [
+                    { required: true, message: "请选择培训部分", trigger: "change" }
+                ],
+                area: [
+                    {
+                        required: true, validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写场地面积"));
+                            }
+                            else if (!global.fieldVerification.IsFloatNumber(value, 1)) {
+                                return callback(new Error("场地面积只能填写数字或浮点数值，小数点后保留1位"));
+                            }
+                            callback();
+                        }, trigger: "blur"
+                    }
+                ],
+                maxCarNum: [
+                    {
+                        required: true, validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写容纳车辆数"));
+                            }
+                            else if (!/^[1-9]\d*$/.test(value)) {
+                                return callback(new Error("容纳车辆数必须为大于0的纯数字"));
+                            }
+                            callback();
+                        }, trigger: "blur"
+                    }
+                ],
+                realCarNum: [
+                    {
+                        required: true, validator: (rule, value, callback) => {
+                            if (!value) {
+                                return callback(new Error("请填写投放车辆数"));
+                            }
+                            else if (!/^[1-9]\d*$/.test(value)) {
+                                return callback(new Error("投放车辆数必须为大于0的纯数字"));
+                            }
+                            callback();
+                        }, trigger: "blur"
+                    }
+                ],
+                teachType: [{ required: true, type: "array", message: "请选择培训车型", trigger: "change" }],
+                address: [{ required: true, message: "请填写场地所在地址", trigger: "blur" }]
             },
             editSiteFormVisible: false,
             editSiteForm: {
@@ -261,7 +309,7 @@ export default {
                     this.detailSiteForm.stage = global.enums.newStage[data.stage];
                     this.detailSiteForm.gmtModify = new Date(data.gmtModify).Format("yyyy-MM-dd HH:mm:ss");
                     //global.printLog(data.points);
-                    setupInitialData(data.points);
+                    setupInitialData(data.points, false);
                 });
             }, "mapContainer1");
         },
@@ -318,6 +366,18 @@ export default {
         },
         //打开新建场地
         handleAdd() {
+            polygonArr = [];
+            this.newSiteForm = {
+                schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
+                name: "",
+                stage: "PART_2",
+                area: "",
+                address: "",
+                teachType: [],
+                maxCarNum: 1,
+                realCarNum: 1,
+                points: []
+            };
             this.newSiteFormVisible = true;
             this.initMap(() => {
                 this.initData(true);
@@ -357,7 +417,7 @@ export default {
                                 realCarNum: data.realCarNum,
                                 points: data.points,
                             }
-                            setupInitialData(data.points);
+                            setupInitialData(data.points, true);
                         }
                     });
                 }, "mapContainer2");
@@ -383,23 +443,32 @@ export default {
         //提交新建场地
         postCreateSite() {
             if (this.newSiteFormVisible) {
-                this.newSiteForm.points = [];
-                var path = polygonArr[0].G.path;
-                for (var item in path) {
-                    this.newSiteForm.points.push({
-                        "longitude": path[item].lng,
-                        "latitude": path[item].lat
-                    });
-                }
-                let para = Object.assign({}, this.newSiteForm);
-                request.timeTraining.site.create(para).then((res) => {
-                    if (res.success === true) {
-                        this.getSites();
-                        this.newSiteFormVisible = false;
-                        this.$message({ message: "场地创建成功！", type: "success" });
-                    }
-                    else {
-                        this.$message.error("场地创建失败，原因：" + res.message);
+                this.$refs["newSiteForm"].validate((valid) => {
+                    if (valid) {
+                        this.newSiteForm.points = [];
+                        if (polygonArr.length) {
+                            var path = polygonArr[0].G.path;
+                            for (var item in path) {
+                                this.newSiteForm.points.push({
+                                    "longitude": path[item].lng,
+                                    "latitude": path[item].lat
+                                });
+                            }
+                            let para = Object.assign({}, this.newSiteForm);
+                            request.timeTraining.site.create(para).then((res) => {
+                                if (res.success === true) {
+                                    this.getSites();
+                                    this.newSiteFormVisible = false;
+                                    this.$message({ message: "场地创建成功！", type: "success" });
+                                }
+                                else {
+                                    this.$message.error("场地创建失败，原因：" + res.message);
+                                }
+                            });
+                        }
+                        else {
+                            this.$message.error("请在地图上设置围栏！");
+                        }
                     }
                 });
             }
@@ -498,10 +567,15 @@ export default {
                     }, 50);
                 }
                 else {
-                    this.$message.info({ message: "地图拼命加载中，" + interval });
-                    //global.printLog("地图拼命加载中，" + interval);
+                    global.printLog("地图拼命加载中，" + interval);
                 }
             }, 50);
+        },
+        handleInputChange(val) {
+            this.$nextTick(function () {
+                console.log(val);
+                this.$refs.maxCarNum.$refs.input.value = (val === "0" ? 1 : val);
+            });
         }
     },
     activated() {
@@ -588,7 +662,7 @@ function getRegionData() {
     return pathData
 }
 
-function setupInitialData(initPolygonData) {
+function setupInitialData(initPolygonData, draw) {
     lnglatInArea = true;
     if (initPolygonData.length == 0) {
         mouseTool.polygon();
@@ -612,7 +686,9 @@ function setupInitialData(initPolygonData) {
             path: polygonDataArr
         });
         var editor = new AMap.PolyEditor(amaps, polygon);
-        addDeleteDelegate(polygon);
+        if (draw) {
+            addDeleteDelegate(polygon);
+        }
         polygon.setExtData({
             editor: editor
         });

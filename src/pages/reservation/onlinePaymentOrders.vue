@@ -11,21 +11,21 @@
             <el-col :span="8" class="right t-right">
                 <el-form :inline="true" :model="filters">
                     <el-form-item v-if="paymentType==='学费充值'">
-                        <el-input class="search-input mr40" v-model="filters.academicExpenseValue.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryPayments" @keyup.enter.native="queryPayments"></el-input>
+                        <el-input class="search-input mr40" v-model="filters.academicExpenseValue.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryPayments"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
                     <el-form-item v-if="paymentType==='先学后付'">
-                        <el-input class="search-input mr40" v-model="filters.attachedBefore.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryPayments" @keyup.enter.native="queryPayments"></el-input>
+                        <el-input class="search-input mr40" v-model="filters.attachedBefore.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryPayments"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
                     <el-form-item v-if="paymentType==='短信充值'">
-                        <el-input class="search-input mr40" v-model="filters.short_livedBurden.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryPayments" @keyup.enter.native="queryPayments"></el-input>
+                        <el-input class="search-input mr40" v-model="filters.short_livedBurden.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryPayments"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
                 </el-form>
             </el-col>
         </el-row>
-        <el-row v-if="paymentType==='学费充值'">
+        <el-row v-show="paymentType==='学费充值'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <!--列表-->
@@ -42,7 +42,7 @@
                     </el-table-column>
                     <el-table-column prop="ownerMobile" label="支付人电话">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="支付时间">
+                    <el-table-column prop="gmtCreate" label="支付时间" :formatter="formatter">
                     </el-table-column>
                     <el-table-column prop="paySerialNum" label="支付流水号">
                     </el-table-column>
@@ -56,7 +56,7 @@
                 </el-pagination>
             </el-col>
         </el-row>
-        <el-row v-if="paymentType==='先学后付'">
+        <el-row v-show="paymentType==='先学后付'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <!--列表-->
@@ -73,7 +73,7 @@
                     </el-table-column>
                     <el-table-column prop="ownerMobile" label="支付人电话">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="支付时间">
+                    <el-table-column prop="gmtCreate" label="支付时间" :formatter="formatter">
                     </el-table-column>
                     <el-table-column prop="paySerialNum" label="支付流水号">
                     </el-table-column>
@@ -87,7 +87,7 @@
                 </el-pagination>
             </el-col>
         </el-row>
-        <el-row v-if="paymentType==='短信充值'">
+        <el-row v-show="paymentType==='短信充值'">
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <!--列表-->
@@ -104,7 +104,7 @@
                     </el-table-column>
                     <el-table-column prop="ownerMobile" label="支付人电话">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="支付时间">
+                    <el-table-column prop="gmtCreate" label="支付时间" :formatter="formatter">
                     </el-table-column>
                     <el-table-column prop="paySerialNum" label="支付流水号">
                     </el-table-column>
@@ -158,6 +158,9 @@ export default {
         formatter(row, column) {
             if (column.property === "state") {
                 return global.enums.payStatus[row.state];
+            }
+            else if (column.property === "gmtCreate") {
+                return row.gmtCreate === null ? "" : new Date(row.gmtCreate).Format("yyyy-MM-dd HH:mm:ss");
             }
         },
         queryPayments() {

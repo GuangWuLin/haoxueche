@@ -128,7 +128,7 @@
                 <el-form-item label="技术等级有效期" class="normal" prop="gmtLevelValidity">
                     <el-date-picker type="date" placeholder="技术等级有效期" v-model="addVehiclesForm.gmtLevelValidity" :editable="false"></el-date-picker>
                 </el-form-item>
-                <el-form-item label="所属地区" class="cs">
+                <el-form-item label="所属区划" class="cs">
                     <PCA v-if="addVehiclesFormVisible" tag="basic" v-on:child-emit="listenData"></PCA>
                 </el-form-item>
                 <el-form-item label="年检日期" prop="gmtAs">
@@ -321,9 +321,8 @@
             <el-form :model="editVehiclesForm" :rules="vehiclesFormRules" ref="editVehiclesForm" :inline="true" label-width="85px">
                 <p class="group-title">基础信息</p>
                 <el-form-item label="车牌号" prop="cardNo">
-                    <el-input auto-complete="off" v-model="editVehiclesForm.cardNo"></el-input>
+                    <el-input auto-complete="off" v-model="editVehiclesForm.cardNo" :disabled="editVehiclesForm.report"></el-input>
                 </el-form-item>
-                
                 <el-form-item label="车牌颜色" class="normal" prop="plateColor">
                     <el-select placeholder="请选择车牌颜色" v-model="editVehiclesForm.plateColor" ref="plateColor">
                         <el-option v-for="item in vehiclesColorsOption" :label="item.value" :value="item.key">
@@ -401,8 +400,7 @@
                     <el-date-picker type="date" placeholder="技术等级有效期" v-model="editVehiclesForm.gmtLevelValidity" :editable="false"></el-date-picker>
                 </el-form-item>
                 <el-form-item label="所属地区" class="cs">
-                    <PCA v-if="editVehiclesFormVisible" tag="basic" :province="editVehiclesForm.province" :city="editVehiclesForm.city"
-                    :area="editVehiclesForm.county"
+                    <PCA v-if="editVehiclesFormVisible" tag="basic" :county="editVehiclesForm.county"
                     v-on:child-emit="listenData"></PCA>
                 </el-form-item>
                 <el-form-item label="年检日期" prop="gmtAs">
@@ -576,7 +574,7 @@ export default {
                 plateColor: "",
                 plateColorName: "",
                 carPhotos: "",
-                manufacturerId: 1,
+                manufacturerId: "",
                 brandId: "",
                 modelId: "",
                 carType: "",
@@ -679,11 +677,17 @@ export default {
         //获取车辆品牌（根据不同参数递归查询）
         getCarBrands(id, tag, callback) {
             global.printLog(id);
+            // console.error(id);
+            // 根据选择的 id 搜索全部汽车生产厂家
             request.basic.vehicle.queryBrands(id).then((res) => {
                 if (res.success === true) {
                     let data = res.object;
                     if (tag === 0) {
-                        this.manufacturerData = [];
+                        // console.log(data)
+                        // 初始化请求 0 查询所有汽车厂家
+                        // id 是 汽车品牌 id
+                        // tag 表示查哪一级
+                        this.manufacturerData = []; // 汽车厂家数组
                         for (let item in data) {
                             this.manufacturerData.push({
                                 label: data[item].name,
@@ -691,24 +695,38 @@ export default {
                             });
                         }
                     }
+                    // tag == 1 请求
                     else if (tag === 1) {
-                        this.brandsData = [];
+                        // console.log(data)
+                        
+                        this.brandsData = []; // 汽车品牌数组
                         for (let item in data) {
                             this.brandsData.push({
                                 label: data[item].name,
                                 value: data[item].id
                             });
                         }
+
                         if (data.length) {
+                                // console.log
+                            
                             if (this.addVehiclesFormVisible) {
                                 this.addVehiclesForm.brandId = this.brandsData[0].value;
+                            }else if(this.editVehiclesFormVisible){
+                                this.editVehiclesForm.brandId = this.brandsData[0].value;
+                                // console.log(1008611)
+                                
                             }
+                            // console.warn(this.brandsData);
+                        // console.error(this.brandsData);
                             // else {
                             //     this.editVehiclesForm.brandId = this.brandsData[0].value;
                             // }
                         }
                     }
                     else if (tag === 2) {
+                        // console.log(data)
+                        
                         this.modelData = [];
                         for (let item in data) {
                             this.modelData.push({
@@ -719,6 +737,10 @@ export default {
                         if (data.length) {
                             if (this.addVehiclesFormVisible) {
                                 this.addVehiclesForm.modelId = this.modelData[0].value;
+                            }else if(this.editVehiclesFormVisible){
+                                this.editVehiclesForm.modelId = this.modelData[0].value;
+                                // console.log(1008611)
+                                
                             }
                             // else {
                             //     this.editVehiclesForm.modelId = this.modelData[0].value;
@@ -805,6 +827,7 @@ export default {
         rowClick(row, evt, column) {
             // this.editVehiclesForm = {};
             if (column.type === "default") {
+                this.radioInsuranceSel = "商业险";
                 request.basic.vehicle.queryDetail(row.id).then((res) => {
                     if (res.success) {
                         let data = res.object;
@@ -1096,15 +1119,15 @@ export default {
                 // console.info(1008744)
                 // console.log(result);
             if (this.addVehiclesFormVisible) {
-                this.addVehiclesForm.province = result[0];
-                this.addVehiclesForm.city = result[1];
-                this.addVehiclesForm.county = result[2];
+                this.addVehiclesForm.province = result[0].province.code;
+                this.addVehiclesForm.city = result[0].city.code;
+                this.addVehiclesForm.county = result[0].code;
                 // console.log(9527)
             }
             else if(this.editVehiclesFormVisible){
-                this.editVehiclesForm.province = result[0];
-                this.editVehiclesForm.city = result[1];
-                this.editVehiclesForm.county = result[2];
+                this.editVehiclesForm.province = result[0].province.code;
+                this.editVehiclesForm.city = result[0].city.code;
+                this.editVehiclesForm.county = result[0].code;
                 // console.warn(100000)
             }
         },
@@ -1130,7 +1153,7 @@ export default {
         this.getDepartment();
         this.getVehiclesColors();
         this.getCarType();
-        this.getCarBrands("", 0, () => { });
+        this.getCarBrands("", 0, () => { }); // 初始获取 所有的汽车厂家
         this.getBranchSchool();
     },
     mounted() {

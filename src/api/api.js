@@ -13,7 +13,7 @@ axios.interceptors.request.use(
         return Promise.reject(err);
     }
 );
-// 
+
 export const request = {
     baseUrl: base,
     //登录
@@ -21,6 +21,10 @@ export const request = {
     //获取所有权限（By驾校）
     getFunctions: params => { return axios.get(`${base}/sc/admin/getFunction?schoolCode=` + params + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
 
+    // 总览
+    overview: {
+        getTopData: params => { return axios.get(`${base}/sc/overview/getOverView?schoolCode=` + params + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); }
+    },
     /* basic-基础管理 */
     basic: {
         student: {
@@ -112,7 +116,6 @@ export const request = {
             }
         }
     },
-
     //systemSettings-系统设置
     systemSettings: {
         //用户模块
@@ -147,7 +150,6 @@ export const request = {
     getBranchSchool: params => { return axios.get(`${base}/sc/school/getBranchSchool?schoolCode=` + params[0] + "&currentPage=" + params[1] + "&pageSize=" + params[2] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
     //新增分校
     addBranchSchool: params => { return axios.post(`${base}/sc/school/addBranchSchool`, params).then(res => res.data); },
-
     //appointment-预约管理
     appointment: {
         //模式
@@ -224,7 +226,7 @@ export const request = {
                 detail: params => { return axios.get(`${base}/sc/classrecord/getClassRecordDetail?classRecordId=` + params + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
                 classRecordMin: params => { return axios.get(`${base}/sc/classrecord/getClassRecordMin?schoolCode=` + params[0] + "&sim=" + params[1] + "&classId=" + params[2] + "&beginTime=" + params[3] + "&endTime=" + params[4] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
                 classRecordPhoto: params => { return axios.get(`${base}/sc/classrecord/getClassRecordPhoto?schoolCode=` + params[0] + "&sim=" + params[1] + "&classId=" + params[2] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
-                classRecordGPS: params => { return axios.get(`${base}/sc/classrecord/getClassRecordGPS?schoolCode=` + params[0] + "&deviceId=" + params[1] + "&beginTime=" + params[2] + "&endTime=" + params[3] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); }
+                classRecordGPS: params => { return axios.get(`${base}/sc/classrecord/getClassRecordGPS?schoolCode=` + params[0] + "&sim=" + params[1] + "&beginTime=" + params[2] + "&endTime=" + params[3] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); }
             }
         },
         stageRecordAudit: {
@@ -293,57 +295,6 @@ export const request = {
             }
         }
     },
-    //增值服务
-    addService: {
-        manager: {
-            query: {
-                queryManagerList: params => { return axios.get(`${base}/sc/attachservice/exist/query?schoolCode=` + params[0] + "&currentPage=" + params[1] + "&pageSize=" + params[2]).then(res => res.data); },
-                queryHistoryList: params => { return axios.get(`${base}/sc/attachservice/history/query?serviceId=` + params[0] + "&currentPage=" + params[1] + "&pageSize=" + params[2]).then(res => res.data); },
-            },
-        },
-        pandect: {
-            query: {
-                queryPandectList: params => { return axios.get(`${base}/sc/attachservice/gets?schoolCode=` + params[0] ).then(res => res.data); },
-            },
-            save:{
-                 applyService: params => { return axios.post(`${base}/sc/attachservice/apply`,params).then(res => res.data); },
-            },
-        },
-    },
-    //理论教学
-    teaching:{
-        device:{
-            query:{
-                queryDeviceList: params => { return axios.get(`${base}/sc/education/device/query?schoolCode=`+params[0]+(params[1] != "1" ? "&used=" + params[1] : "")
-                +(params[2] != "1" ? "&type=" + params[2] : "")+(params[3] != "" ? "&number=" + params[3] : "")+ "&currentPage=" + params[4] + "&pageSize=" + params[5] ).then(res => res.data); },
-            },
-            save:{
-                 saveDevice: params => { return axios.post(`${base}/sc/education/device`,params).then(res => res.data); },
-                  updeatDevice: params => { return axios.put(`${base}/sc/education/device`,params).then(res => res.data); },
-            },
-            delete:{
-                deleteDevice: params => { return axios.delete(`${base}/sc/education/device?id=`+params[0]).then(res => res.data); },
-            },
-        },
-        classRoom:{
-            query:{
-                 queryClassRoomList: params => { return axios.get(`${base}/sc/education/classroom/query?schoolCode=`+params[0]+"&schoolName=" + params[1] 
-                +(params[2] != "" ? "&name=" + params[2] : "")+(params[3] != "" ? "&address=" + params[3] : "")+ "&currentPage=" + params[4] + "&pageSize=" + params[5] ).then(res => res.data); },
-                 queryDevice: params => { return axios.get(`${base}/sc/education/device/query?schoolCode=` + params[0]+ "&currentPage=1&pageSize=10").then(res => res.data); },
-                queryRecordList: params => { return axios.get(`${base}/sc/education/record/query?classroomId=` + params[0] +(params[1] != "" ? "&gmtBegin=" + params[1] : "")+(params[2] != "" ? "&gmtEnd=" + params[2] : "")
-                +(params[3] != "" ? "&teacherName=" + params[3] : "")+"&currentPage=" + params[4] + "&pageSize=" + params[5]).then(res => res.data); },
-                 queryTeacher: params => { return axios.get(`${base}/sc/education/record/detail/teacher?recordId=` + params[0]).then(res => res.data); },
-                queryRecordDetail: params => { return axios.get(`${base}/sc/education/record?recordId=` + params[0]).then(res => res.data); },
-                queryStudent: params => { return axios.get(`${base}/sc/education/record/detail/query?recordId=` + params[0] +(params[1] != "" ? "&type=student&userName=" + params[1] : "") +(params[2] != "" ? "&telephone=" + params[2] : "") +(params[3] != "" ? "&idcard=" + params[3] : "") +(params[4] != "" ? "&status=" + params[4] : "") +(params[5] != "" ? "&currentPage=" + params[5] : "") +(params[6] != "" ? "&pageSize=" + params[6] : "")).then(res => res.data); },
-                queryMonitor: params => { return axios.get(`${base}/sc/education/record/current/classroom?classroomId=` + params[0]).then(res => res.data); },
-         },
-            save:{
-                saveClassRoom: params => { return axios.post(`${base}/sc/education/classroom`,params).then(res => res.data); },
-                updateClassRoom: params => { return axios.put(`${base}/sc/education/classroom`,params).then(res => res.data); },
-            },
-            
-        },
-    },
     //报表中心
     reportCentre: {
         //业务报表
@@ -354,6 +305,63 @@ export const request = {
             queryArrears: params => { return axios.get(`${base}/sc/fnReport/getSchoolRecCost?schoolCode=` + params[0] + "&deptId=" + params[1] + "&beginTime=" + params[2] + "&endTime=" + params[3] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
             //欠费明细
             queryArrearsDetail: params => { return axios.get(`${base}/sc/fnReport/getSchoolRecCostDetail?schoolCode=` + params[0] + "&deptId=" + params[1] + "&beginTime=" + params[2] + "&endTime=" + params[3] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); }
+        }
+    },
+    //增值服务
+    addService: {
+        manager: {
+            query: {
+                managerList: params => { return axios.get(`${base}/sc/attachservice/exist/query?schoolCode=` + params[0] + "&currentPage=" + params[1] + "&pageSize=" + params[2]).then(res => res.data); },
+                queryHistoryList: params => { return axios.get(`${base}/sc/attachservice/history/query?serviceId=` + params[0] + "&currentPage=" + params[1] + "&pageSize=" + params[2]).then(res => res.data); },
+            },
+        },
+        pandect: {
+            query: {
+                queryPandectList: params => { return axios.get(`${base}/sc/attachservice/gets?schoolCode=` + params[0]).then(res => res.data); },
+            },
+            save: {
+                applyService: params => { return axios.post(`${base}/sc/attachservice/apply`, params).then(res => res.data); },
+            },
+        },
+    },
+    //理论教学
+    teaching: {
+        device: {
+            query: {
+                queryDeviceList: params => {
+                    return axios.get(`${base}/sc/education/device/query?schoolCode=` + params[0] + (params[1] != "1" ? "&used=" + params[1] : "")
+                        + (params[2] != "1" ? "&type=" + params[2] : "") + (params[3] != "" ? "&number=" + params[3] : "") + "&currentPage=" + params[4] + "&pageSize=" + params[5] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data);
+                }
+            },
+            save: {
+                saveDevice: params => { return axios.post(`${base}/sc/education/device`, params).then(res => res.data); },
+                updeatDevice: params => { return axios.put(`${base}/sc/education/device`, params).then(res => res.data); },
+            },
+            delete: {
+                deleteDevice: params => { return axios.delete(`${base}/sc/education/device?id=` + params[0]).then(res => res.data); },
+            }
+        },
+        classRoom: {
+            query: {
+                classRoomList: params => {
+                    return axios.get(`${base}/sc/education/classroom/query?schoolCode=` + params[0] + "&schoolName=" + params[1]
+                        + (params[2] != "" ? "&name=" + params[2] : "") + (params[3] != "" ? "&address=" + params[3] : "") + "&currentPage=" + params[4] + "&pageSize=" + params[5] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data);
+                },
+                devices: params => { return axios.get(`${base}/sc/education/device/query?schoolCode=` + params[0] + "&currentPage=1&pageSize=10" + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
+                recordList: params => {
+                    return axios.get(`${base}/sc/education/record/query?classroomId=` + params[0] + (params[1] != "" ? "&gmtBegin=" + params[1] : "") + (params[2] != "" ? "&gmtEnd=" + params[2] : "")
+                        + (params[3] != "" ? "&teacherName=" + params[3] : "") + "&currentPage=" + params[4] + "&pageSize=" + params[5] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data);
+                },
+                queryTeacher: params => { return axios.get(`${base}/sc/education/record/detail/teacher?recordId=` + params[0] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
+                queryRecordDetail: params => { return axios.get(`${base}/sc/education/record?recordId=` + params[0] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
+                //"&type=" + params[7] + 
+                student: params => { return axios.get(`${base}/sc/education/record/detail/query?recordId=` + params[0] + (params[1] != "" ? "&userName=" + params[1] : "") + (params[2] != "" ? "&telephone=" + params[2] : "") + (params[3] != "" ? "&idcard=" + params[3] : "") + (params[4] != "" ? "&status=" + params[4] : "") + (params[5] != "" ? "&currentPage=" + params[5] : "") + (params[6] != "" ? "&pageSize=" + params[6] : "") + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
+                queryMonitor: params => { return axios.get(`${base}/sc/education/record/current/classroom?classroomId=` + params[0] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
+            },
+            save: {
+                classRoom: params => { return axios.post(`${base}/sc/education/classroom`, params).then(res => res.data); },
+                updateClassRoom: params => { return axios.put(`${base}/sc/education/classroom`, params).then(res => res.data); },
+            }
         }
     },
     //公共

@@ -6,9 +6,11 @@
                 <el-tag :key="item" v-for="item in pay.elements" :closable="true" :close-transition="false" @close="handleClose(item,'pay')">
                     {{item.payTypeName}}
                 </el-tag>
-                <el-input v-if="pay.visible" v-model="pay.value" ref="saveInput" @keyup.enter.native="handleInputConfirm('pay')" placeholder="填写支付方式，按回车键快速保存">
-                    <!-- @blur="handleInputConfirm('pay')" -->
-                </el-input>
+                <div v-if="pay.visible">
+                    <el-input v-model="pay.value" ref="saveInput" placeholder="请输入支付方式">
+                        <el-button type="primary" class="submit" @click="handleInputConfirm('pay')" slot="append">保存</el-button>
+                    </el-input>
+                </div>
                 <el-button v-else size="small" @click="showInput('pay')" icon="plus">支付方式</el-button>
             </div>
         </div>
@@ -18,8 +20,11 @@
                 <el-tag :key="item" v-for="item in document.elements" :closable="true" :close-transition="false" @close="handleClose(item,'doc')">
                     {{item.recTypeName}}
                 </el-tag>
-                <el-input v-if="document.visible" v-model="document.value" ref="saveInput" @keyup.enter.native="handleInputConfirm('doc')" placeholder="填写单据类型，按回车键快速保存">
-                </el-input>
+                <div v-if="document.visible">
+                    <el-input v-model="document.value" ref="saveInput" placeholder="请输入单据类型">
+                        <el-button type="primary" class="submit" @click="handleInputConfirm('doc')" slot="append">保存</el-button>
+                    </el-input>
+                </div>
                 <el-button v-else size="small" @click="showInput('doc')" icon="plus">单据类型</el-button>
             </div>
         </div>
@@ -29,8 +34,11 @@
                 <el-tag :key="item" v-for="item in account.elements" :closable="true" :close-transition="false" @close="handleClose(item,'acc')">
                     {{item.accountName}}
                 </el-tag>
-                <el-input v-if="account.visible" v-model="account.value" ref="saveInput" @keyup.enter.native="handleInputConfirm('acc')" placeholder="填写资金账户，按回车键快速保存">
-                </el-input>
+                <div v-if="account.visible">
+                    <el-input v-model="account.value" ref="saveInput" placeholder="请输入资金账户">
+                        <el-button type="primary" class="submit" @click="handleInputConfirm('acc')" slot="append">保存</el-button>
+                    </el-input>
+                </div>
                 <el-button v-else size="small" @click="showInput('acc')" icon="plus">资金账户</el-button>
             </div>
         </div>
@@ -278,12 +286,26 @@ export default {
             padding: 0 10px 10px;
             position: relative;
             top: -8px;
+            .el-input {
+                width: 60%;
+            }
             .el-tag {
                 margin: 5px 10px 10px 0;
             }
             .el-button {
                 color: #20a0ff;
                 font-size: 1em;
+                &.submit {
+                    color: #fff;
+                    border-color: #20a0ff;
+                    background-color: #20a0ff;
+                    border-top-left-radius: 0;
+                    border-bottom-left-radius: 0;
+                }
+            }
+            .el-input-group__append,
+            .el-input-group__prepend {
+                border: 1px solid #20a0ff;
             }
         }
     }

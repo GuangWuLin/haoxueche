@@ -6,7 +6,7 @@
                 <el-form :inline="true">
                     <el-col :span="12">
                         <el-form-item>
-                            <el-input class="search-input" v-model="exam.registered.keyword" placeholder="输入学员姓名/电话号码" icon="search" :on-icon-click="getExamRegistered" @keyup.enter.native="getExamRegistered"></el-input>
+                            <el-input class="search-input" v-model="exam.registered.keyword" placeholder="输入学员姓名/电话号码" icon="search" :on-icon-click="getExamRegistered"></el-input>
                             <el-date-picker type="date" placeholder="考试日期" class="ml15" :editable="false" v-model="exam.registered.examDate" @change="handlePickTime"></el-date-picker>
                         </el-form-item>
                     </el-col>
@@ -26,9 +26,9 @@
                 <el-table-column prop="phone" label="电话号码"></el-table-column>
                 <el-table-column prop="carType" label="考试车型"></el-table-column>
                 <el-table-column prop="stage" label="考试科目阶段" :formatter="formatter"></el-table-column>
-                <el-table-column prop="score" label="考试成绩"></el-table-column>
+                <el-table-column prop="score" label="考试成绩" :formatter="formatter"></el-table-column>
                 <el-table-column prop="checkTeacherName" label="核算教练姓名"></el-table-column>
-                <el-table-column prop="checkTeacherId" label="核算教练编号"></el-table-column>
+                <!--<el-table-column prop="checkTeacherId" label="核算教练编号"></el-table-column>-->
                 <el-table-column prop="gmtExam" label="考试时间" :formatter="formatter"></el-table-column>
             </el-table>
             <!--工具条-->
@@ -42,7 +42,7 @@
                 <el-form>
                     <el-row>
                         <el-col :span="24">
-                            <el-input class="search-input" v-model="exam.student.keyword" placeholder="输入学员姓名/电话号码" icon="search" :on-icon-click="getExamStudent" @keyup.enter.native="getExamStudent"></el-input>
+                            <el-input class="search-input" v-model="exam.student.keyword" placeholder="输入学员姓名/电话号码" icon="search" :on-icon-click="getExamStudent"></el-input>
                         </el-col>
                         <el-col :span="11" class="mt15">
                             <el-table :data="exam.student.list" @selection-change="handleSelectionChange">
@@ -104,7 +104,7 @@
                 <el-form>
                     <el-row>
                         <el-col :span="24">
-                            <el-input class="search-input" v-model="exam.unregistered.keyword" placeholder="输入学员姓名、电话号码" icon="search" :on-icon-click="getExamUnRegistered" @keyup.enter.native="getExamUnRegistered"></el-input>
+                            <el-input class="search-input" v-model="exam.unregistered.keyword" placeholder="输入学员姓名、电话号码" icon="search" :on-icon-click="getExamUnRegistered"></el-input>
                             <el-date-picker type="date" v-model="exam.unregistered.examDate" placeholder="考试日期" :editable="false" style="width:180px;" @change="handlePickTime" class="ml15"></el-date-picker>
                         </el-col>
                         <el-col :span="24" class="mt20">
@@ -230,9 +230,10 @@ export default {
                 return global.enums.stage[row.stage];
             }
             else if (column.property === "gmtExam") {
-                var date = new Date();
-                date.setTime(row.gmtExam);
-                return date.Format("yyyy-MM-dd");
+                return new Date(row.gmtExam).Format("yyyy-MM-dd");
+            }
+            else if (column.property === "score") {
+                return row.score === "0" ? "未通过" : row.score === "1" ? "一次通过" : "二次通过";
             }
         },
         getExamRegistered() {
