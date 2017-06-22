@@ -6,7 +6,7 @@
                 <el-form :inline="true" :model="filters">
                     <el-col :span="12">
                         <el-form-item>
-                            <el-input class="search-input" v-model="filters.plat" placeholder="输入车牌号" icon="search" :on-icon-click="getVehicles" @keyup.enter.native="getVehicles"></el-input>
+                            <el-input class="search-input" v-model="filters.plat" placeholder="输入车牌号" icon="search" :on-icon-click="getVehicles"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12" class="t-right">
@@ -47,7 +47,7 @@
         </el-row>
         <!--新增车辆界面-->
         <el-dialog title="新增车辆" v-model="addVehiclesFormVisible" :close-on-click-modal="false" size="full">
-            <el-form :model="addVehiclesForm" :rules="vehiclesFormRules" ref="addVehiclesForm" :inline="true" label-width="85px">
+            <el-form v-if="addVehiclesFormVisible" :model="addVehiclesForm" :rules="vehiclesFormRules" ref="addVehiclesForm" :inline="true" label-width="85px">
                 <p class="group-title">基础信息</p>
                 <el-form-item label="车牌号" prop="cardNo">
                     <el-input auto-complete="off" v-model="addVehiclesForm.cardNo"></el-input>
@@ -94,7 +94,7 @@
                 <el-form-item label="入校日期" class="normal" prop="gmtRegister">
                     <el-date-picker type="date" placeholder="入校日期" v-model="addVehiclesForm.gmtRegister" :editable="false"></el-date-picker>
                 </el-form-item>
-                <el-form-item label="车辆品牌" class="cs">
+                <el-form-item label="车辆品牌" class="cs" prop="manufacturerId">
                     <el-col :span="9">
                         <el-select placeholder="生产厂家" v-model="addVehiclesForm.manufacturerId" @change="brandChange" ref="manufacturer">
                             <el-option v-for="item in manufacturerData" :label="item.label" :value="item.value">
@@ -190,7 +190,7 @@
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="addVehiclesFormVisible = false" size="large">取消</el-button>
-                <el-button type="primary" size="large" @click.native="createNew('create')">保存</el-button>
+                <el-button type="primary" size="large" @click.native="createNew('create')" :loading="btnLoading">保存</el-button>
             </div>
         </el-dialog>
         <el-dialog title="车辆详情" v-model="detailsVehicleFormVisible" :close-on-click-modal="false" size="full">
@@ -273,12 +273,12 @@
                     </el-row>
                     <el-row>
                         <el-col :span="24">
-                            <el-radio-group v-model="radioInsuranceSel">
+                            <el-radio-group v-model="radioInsuranceSel" class="mb15">
                                 <el-radio-button label="商业险"></el-radio-button>
                                 <el-radio-button label="交强险"></el-radio-button>
                             </el-radio-group>
                             <!--列表-->
-                            <el-table :data="detailVehicles.commercialInsurances" highlight-current-row v-if="radioInsuranceSel==='商业险'" class="mt15">
+                            <el-table :data="detailVehicles.commercialInsurances" highlight-current-row v-show="radioInsuranceSel==='商业险'">
                                 <el-table-column prop="insuranceCompany" label="保险公司">
                                 </el-table-column>
                                 <el-table-column prop="insuranceCost" label="保费">
@@ -294,7 +294,7 @@
                                 <el-table-column prop="insurancePhotos" label="保单原件">
                                 </el-table-column>
                             </el-table>
-                            <el-table :data="detailVehicles.mandatoryInsurances" highlight-current-row v-if="radioInsuranceSel==='交强险'" class="mt15">
+                            <el-table :data="detailVehicles.mandatoryInsurances" highlight-current-row v-show="radioInsuranceSel==='交强险'">
                                 <el-table-column prop="insuranceCompany" label="保险公司">
                                 </el-table-column>
                                 <el-table-column prop="insuranceCost" label="保费">
@@ -318,7 +318,7 @@
         </el-dialog>
         <!--编辑车辆界面-->
         <el-dialog title="编辑车辆" v-model="editVehiclesFormVisible" :close-on-click-modal="false" size="full">
-            <el-form :model="editVehiclesForm" :rules="vehiclesFormRules" ref="editVehiclesForm" :inline="true" label-width="85px">
+            <el-form v-if="editVehiclesFormVisible" :model="editVehiclesForm" :rules="vehiclesFormRules" ref="editVehiclesForm" :inline="true" label-width="85px">
                 <p class="group-title">基础信息</p>
                 <el-form-item label="车牌号" prop="cardNo">
                     <el-input auto-complete="off" v-model="editVehiclesForm.cardNo" :disabled="editVehiclesForm.report"></el-input>
@@ -365,7 +365,7 @@
                 <el-form-item label="入校日期" class="normal" prop="gmtRegister">
                     <el-date-picker type="date" placeholder="入校日期" v-model="editVehiclesForm.gmtRegister" :editable="false"></el-date-picker>
                 </el-form-item>
-                <el-form-item label="车辆品牌" class="cs">
+                <el-form-item label="车辆品牌" class="cs" prop="manufacturerId">
                     <el-col :span="9">
                         <el-select placeholder="生产厂家" v-model="editVehiclesForm.manufacturerId" @change="brandChange" ref="manufacturer">
                             <el-option v-for="item in manufacturerData" :label="item.label" :value="item.value">
@@ -400,8 +400,7 @@
                     <el-date-picker type="date" placeholder="技术等级有效期" v-model="editVehiclesForm.gmtLevelValidity" :editable="false"></el-date-picker>
                 </el-form-item>
                 <el-form-item label="所属地区" class="cs">
-                    <PCA v-if="editVehiclesFormVisible" tag="basic" :county="editVehiclesForm.county"
-                    v-on:child-emit="listenData"></PCA>
+                    <PCA v-if="editVehiclesFormVisible" tag="basic" :county="editVehiclesForm.county" v-on:child-emit="listenData"></PCA>
                 </el-form-item>
                 <el-form-item label="年检日期" prop="gmtAs">
                     <el-date-picker type="date" placeholder="年检日期" v-model="editVehiclesForm.gmtAs" :editable="false"></el-date-picker>
@@ -462,7 +461,7 @@
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="editVehiclesFormVisible = false" size="large">取消</el-button>
-                <el-button type="primary" size="large" @click.native="createNew('edit')">保存</el-button>
+                <el-button type="primary" size="large" @click.native="createNew('edit')" :loading="btnLoading">保存</el-button>
             </div>
         </el-dialog>
     </section>
@@ -476,7 +475,6 @@ import { global } from "../../assets/javascript/global";
 export default {
     data() {
         return {
-            // thisShow: false,
             pageLoading: false,
             total: 0,
             page: 1,
@@ -554,9 +552,9 @@ export default {
                 plateColor: [
                     { type: "number", required: true, message: "请选择车牌颜色", trigger: "change" }
                 ],
-                // cardNo: [
-                //     { required: true, message: "请选择车辆品牌", trigger: "blur" }
-                // ],
+                manufacturerId: [
+                    { required: true, message: "请选择车辆生产厂家／品牌／型号", trigger: "change" }
+                ],
                 departmentId: [
                     { required: true, message: "请选择所属部门", trigger: "change" }
                 ],
@@ -583,11 +581,11 @@ export default {
                 gmtAs: "",
                 vouchStudent: "",
                 licenseNo: "",
-                provinceName:"",
+                provinceName: "",
                 province: "",
-                cityName:"",
+                cityName: "",
                 city: "",
-                countyName:"",
+                countyName: "",
                 county: "",
                 level: "",
                 gmtLevel: "",
@@ -617,7 +615,8 @@ export default {
             editVehiclesFormVisible: false,
             fileUploadAction: request.baseUrl + "/file/uploadFile",
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
-            parentSchoolCode: JSON.parse(sessionStorage.getItem("user")).parentSchoolCode
+            parentSchoolCode: JSON.parse(sessionStorage.getItem("user")).parentSchoolCode,
+            btnLoading: false
         }
     },
     methods: {
@@ -677,13 +676,11 @@ export default {
         //获取车辆品牌（根据不同参数递归查询）
         getCarBrands(id, tag, callback) {
             global.printLog(id);
-            // console.error(id);
             // 根据选择的 id 搜索全部汽车生产厂家
             request.basic.vehicle.queryBrands(id).then((res) => {
                 if (res.success === true) {
                     let data = res.object;
                     if (tag === 0) {
-                        // console.log(data)
                         // 初始化请求 0 查询所有汽车厂家
                         // id 是 汽车品牌 id
                         // tag 表示查哪一级
@@ -695,10 +692,7 @@ export default {
                             });
                         }
                     }
-                    // tag == 1 请求
                     else if (tag === 1) {
-                        // console.log(data)
-                        
                         this.brandsData = []; // 汽车品牌数组
                         for (let item in data) {
                             this.brandsData.push({
@@ -706,27 +700,16 @@ export default {
                                 value: data[item].id
                             });
                         }
-
                         if (data.length) {
-                                // console.log
-                            
                             if (this.addVehiclesFormVisible) {
                                 this.addVehiclesForm.brandId = this.brandsData[0].value;
-                            }else if(this.editVehiclesFormVisible){
-                                this.editVehiclesForm.brandId = this.brandsData[0].value;
-                                // console.log(1008611)
-                                
                             }
-                            // console.warn(this.brandsData);
-                        // console.error(this.brandsData);
-                            // else {
-                            //     this.editVehiclesForm.brandId = this.brandsData[0].value;
-                            // }
+                            else if (this.editVehiclesFormVisible) {
+                                this.editVehiclesForm.brandId = this.brandsData[0].value;
+                            }
                         }
                     }
                     else if (tag === 2) {
-                        // console.log(data)
-                        
                         this.modelData = [];
                         for (let item in data) {
                             this.modelData.push({
@@ -737,14 +720,10 @@ export default {
                         if (data.length) {
                             if (this.addVehiclesFormVisible) {
                                 this.addVehiclesForm.modelId = this.modelData[0].value;
-                            }else if(this.editVehiclesFormVisible){
-                                this.editVehiclesForm.modelId = this.modelData[0].value;
-                                // console.log(1008611)
-                                
                             }
-                            // else {
-                            //     this.editVehiclesForm.modelId = this.modelData[0].value;
-                            // }
+                            else {
+                                this.editVehiclesForm.modelId = this.modelData[0].value;
+                            }
                         }
                     }
                     callback();
@@ -760,7 +739,7 @@ export default {
                     if (res.success === true) {
                         this.pageLoading = false;
                         let data = res.object;
-                        // console.log(data);
+                        global.printLog(data);
                         this.total = data.num;
                         this.vehiclesList = data.list;
                     }
@@ -776,7 +755,6 @@ export default {
                 this.detailsVehicleFormVisible = false;
                 this.editVehiclesFormVisible = true;
             }
-            // this.thisShow = true;
         },
         handleFiling() {
             let ids = this.reportTeachers.ids;
@@ -825,60 +803,48 @@ export default {
         },
         //列表行点击
         rowClick(row, evt, column) {
-            // this.editVehiclesForm = {};
             if (column.type === "default") {
                 this.radioInsuranceSel = "商业险";
                 request.basic.vehicle.queryDetail(row.id).then((res) => {
                     if (res.success) {
                         let data = res.object;
-                        // console.log(data);
                         global.printLog(data);
                         this.detailVehicles = data;
                         this.detailVehicles.level = data.level;
-                        this.editVehiclesForm.plateColor = parseInt(data.plateColor);
-                        this.editVehiclesForm.schoolCode = parseInt(data.schoolCode);
                         let _brandId = data.brandId;
                         let _modelId = data.modelId;
                         let _manufacturerId = data.manufacturerId;
-                        this.editVehiclesForm = data;
-                        this.editVehiclesForm.gmtBuy = data.gmtBuy === null ? "" : new Date(data.gmtBuy);
-                        this.editVehiclesForm.gmtRegister = data.gmtRegister === null ? "" : new Date(data.gmtRegister);
-                        this.editVehiclesForm.plateColor = parseInt(data.plateColor);
-                        this.editVehiclesForm.manufacturerId = _manufacturerId;
-                        this.editVehiclesForm.gmtAs = data.gmtAs === null ? "" : new Date(data.gmtAs);
-                        this.editVehiclesForm.gmtLevel = data.gmtLevel === null ? "" : new Date(data.gmtLevel);
-                        this.editVehiclesForm.gmtLevelValidity = data.gmtLevelValidity === null ? "" : new Date(data.gmtLevelValidity);
-                        this.editVehiclesForm.schoolCode = parseInt(data.schoolCode);
-                        // this.editVehiclesForm = {
-                        //     id: data.id,
-                        //     vin: data.vin,
-                        //     engineNo: data.engineNo,
-                        //     operationNo: data.operationNo,
-                        //     cardNo: data.cardNo,
-                        //     plateColor: parseInt(data.plateColor),
-                        //     plateColorName: data.plateColorName,
-                        //     carPhotos: data.carPhotos,
-                        //     manufacturerId: _manufacturerId,
-                        //     carType: data.carType,
-                        //     gmtBuy: data.gmtBuy === null ? "" : new Date(data.gmtBuy),
-                        //     gmtRegister: data.gmtRegister === null ? "" : new Date(data.gmtRegister),
-                        //     gmtAs: data.gmtAs === null ? "" : new Date(data.gmtAs),
-                        //     vouchStudent: data.vouchStudent,
-                        //     licenseNo: data.licenseNo,
-                        //     province: data.province,
-                        //     provinceName:data.provinceName,
-                        //     city: data.city,
-                        //     cityName:data.cityName,
-                        //     county: data.county,
-                        //     countyName:data.countyName,
-                        //     level: data.level,
-                        //     gmtLevel: data.gmtLevel === null ? "" : new Date(data.gmtLevel),
-                        //     gmtLevelValidity: data.gmtLevelValidity === null ? "" : new Date(data.gmtLevelValidity),
-                        //     seating: data.seating,
-                        //     commercialInsurances: data.commercialInsurances,
-                        //     mandatoryInsurances: data.mandatoryInsurances,
-                        //     schoolCode: parseInt(data.schoolCode)
-                        // }
+                        this.editVehiclesForm = {
+                            id: data.id,
+                            vin: data.vin,
+                            engineNo: data.engineNo,
+                            operationNo: data.operationNo,
+                            cardNo: data.cardNo,
+                            plateColor: parseInt(data.plateColor),
+                            plateColorName: data.plateColorName,
+                            carPhotos: data.carPhotos,
+                            manufacturerId: _manufacturerId,
+                            carType: data.carType,
+                            gmtBuy: data.gmtBuy === null ? "" : new Date(data.gmtBuy),
+                            gmtRegister: data.gmtRegister === null ? "" : new Date(data.gmtRegister),
+                            gmtAs: data.gmtAs === null ? "" : new Date(data.gmtAs),
+                            vouchStudent: data.vouchStudent,
+                            licenseNo: data.licenseNo,
+                            province: data.province,
+                            provinceName: data.provinceName,
+                            city: data.city,
+                            cityName: data.cityName,
+                            county: data.county,
+                            countyName: data.countyName,
+                            level: data.level,
+                            gmtLevel: data.gmtLevel === null ? "" : new Date(data.gmtLevel),
+                            gmtLevelValidity: data.gmtLevelValidity === null ? "" : new Date(data.gmtLevelValidity),
+                            seating: data.seating,
+                            commercialInsurances: data.commercialInsurances,
+                            mandatoryInsurances: data.mandatoryInsurances,
+                            schoolCode: parseInt(data.schoolCode),
+                            report: data.report
+                        }
                         this.getCarBrands(_manufacturerId, 1, () => {
                             this.editVehiclesForm.brandId = _brandId;
                         });
@@ -887,7 +853,6 @@ export default {
                         });
                     }
                     this.detailsVehicleFormVisible = true;
-                    // console.log(this.editVehiclesForm);
                 });
             }
         },
@@ -895,7 +860,7 @@ export default {
         addInsurace(insurace) {
             if (insurace === "commercial") {
                 this.insuraceForm.commercial.push({
-                    insuranceCompany: "123",
+                    insuranceCompany: "",
                     insuranceCode: "",
                     insuranceCost: "",
                     gmtEnd: "",
@@ -904,7 +869,7 @@ export default {
             }
             else {
                 this.insuraceForm.mandatory.push({
-                    insuranceCompany: "456",
+                    insuranceCompany: "",
                     insuranceCode: "",
                     insuranceCost: "",
                     gmtEnd: ""
@@ -933,13 +898,14 @@ export default {
                 this.$refs["addVehiclesForm"].validate((valid) => {
                     if (valid) {
                         if (this.addVehiclesForm.carPhotos === "") {
-                            this.$message.error("请先上传车辆图片！");
+                            this.$message.error("请先上传车辆图片");
                             return;
                         }
                         else if (this.addVehiclesForm.manufacturerId === "") {
-                            this.$message.error("请选择车辆品牌！");
+                            this.$message.error("请选择车辆品牌");
                             return;
                         }
+                        this.btnLoading = true;
                         this.addVehiclesForm.commercialInsurances = [];
                         this.addVehiclesForm.mandatoryInsurances = [];
                         this.addVehiclesForm.plateColorName = refs.plateColor.selectedLabel;
@@ -964,12 +930,14 @@ export default {
                         }
                         global.printLog(JSON.stringify(this.addVehiclesForm));
                         let para = Object.assign({}, this.addVehiclesForm);
+                        //return;
                         request.basic.vehicle.create(para).then((res) => {
+                            this.btnLoading = false;
                             if (res.success) {
                                 this.getVehicles();
                                 this.resetForm("addVehiclesForm");
                                 this.addVehiclesFormVisible = false;
-                                this.$message({ message: "车辆添加成功！", type: "success" });
+                                this.$message({ message: "车辆添加成功", type: "success" });
                             }
                             else {
                                 this.addVehiclesForm.gmtBuy = (this.addVehiclesForm.gmtBuy === "" || this.addVehiclesForm.gmtBuy === undefined ? "" : new Date(this.addVehiclesForm.gmtBuy));
@@ -987,26 +955,29 @@ export default {
                 this.$refs["editVehiclesForm"].validate((valid) => {
                     if (valid) {
                         if (this.editVehiclesForm.carPhotos === "") {
-                            this.$message.error("请先上传车辆图片！");
+                            this.$message.error("请先上传车辆图片");
                             return;
                         }
                         else if (this.editVehiclesForm.manufacturerId === "") {
-                            this.$message.error("请选择车辆品牌！");
+                            this.$message.error("请选择车辆品牌");
                             return;
                         }
+                        this.btnLoading = true;
                         this.editVehiclesForm.gmtAs = this.formatDate(this.editVehiclesForm.gmtAs);
                         this.editVehiclesForm.gmtBuy = this.formatDate(this.editVehiclesForm.gmtBuy);
                         this.editVehiclesForm.gmtLevel = this.formatDate(this.editVehiclesForm.gmtLevel);
                         this.editVehiclesForm.gmtRegister = this.formatDate(this.editVehiclesForm.gmtRegister);
                         this.editVehiclesForm.gmtLevelValidity = this.formatDate(this.editVehiclesForm.gmtLevelValidity);
+                        //manufacturer brand model
                         global.printLog(JSON.stringify(this.editVehiclesForm));
                         let para = Object.assign({}, this.editVehiclesForm);
                         request.basic.vehicle.edit(para).then((res) => {
+                            this.btnLoading = false;
                             if (res.success) {
                                 this.getVehicles();
                                 this.resetForm("editVehiclesForm");
                                 this.editVehiclesFormVisible = false;
-                                this.$message({ message: "车辆修改成功！", type: "success" });
+                                this.$message({ message: "车辆修改成功", type: "success" });
                             }
                             else {
                                 this.editVehiclesForm.gmtAs = this.editVehiclesForm.gmtAs === "" || this.editVehiclesForm.gmtAs === undefined ? "" : new Date(this.editVehiclesForm.gmtAs);
@@ -1014,20 +985,12 @@ export default {
                                 this.editVehiclesForm.gmtLevel = this.editVehiclesForm.gmtLevel === "" || this.editVehiclesForm.gmtLevel === undefined ? "" : new Date(this.editVehiclesForm.gmtLevel);
                                 this.editVehiclesForm.gmtRegister = this.editVehiclesForm.gmtRegister === "" || this.editVehiclesForm.gmtRegister === undefined ? "" : new Date(this.editVehiclesForm.gmtRegister);
                                 this.editVehiclesForm.gmtLevelValidity = this.editVehiclesForm.gmtLevelValidity === "" || this.editVehiclesForm.gmtLevelValidity === undefined ? "" : new Date(this.editVehiclesForm.gmtLevelValidity);
-                                this.$message.error("车辆修改失败！原因：" + res.message);
+                                this.$message.error("车辆修改失败，原因：" + res.message);
                             }
                         });
                     }
                 });
             }
-        },
-        //省份列表切换查询
-        provinceChange(province) {
-            this.getCity(province,true);
-        },
-        //市列表切换查询
-        cityChange(city) {
-            this.getCounty(city,true);
         },
         brandChange(id) {
             this.getCarBrands(id, 1, () => { });
@@ -1045,7 +1008,6 @@ export default {
                     for (var item in data) {
                         this.departmentData.push(this.recursive(data[item]));
                     }
-                    global.printLog(this.departmentData);
                 }
             });
         },
@@ -1116,19 +1078,15 @@ export default {
             return (date === "" || date === undefined ? "" : new Date(date).Format("yyyy-MM-dd"));
         },
         listenData(result, tag) {
-                // console.info(1008744)
-                // console.log(result);
             if (this.addVehiclesFormVisible) {
                 this.addVehiclesForm.province = result[0].province.code;
                 this.addVehiclesForm.city = result[0].city.code;
                 this.addVehiclesForm.county = result[0].code;
-                // console.log(9527)
             }
-            else if(this.editVehiclesFormVisible){
+            else if (this.editVehiclesFormVisible) {
                 this.editVehiclesForm.province = result[0].province.code;
                 this.editVehiclesForm.city = result[0].city.code;
                 this.editVehiclesForm.county = result[0].code;
-                // console.warn(100000)
             }
         },
         //重置表单数据
@@ -1153,7 +1111,7 @@ export default {
         this.getDepartment();
         this.getVehiclesColors();
         this.getCarType();
-        this.getCarBrands("", 0, () => { }); // 初始获取 所有的汽车厂家
+        this.getCarBrands("", 0, () => { });
         this.getBranchSchool();
     },
     mounted() {

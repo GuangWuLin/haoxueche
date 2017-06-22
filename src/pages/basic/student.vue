@@ -10,12 +10,12 @@
                         <el-input class="search-input mr10 left" v-model="filters.keyWord" placeholder="输入学员姓名、电话" icon="search" :on-icon-click="queryStudents"></el-input>
                         <VTYPE :type="filters.curCarType" tag="vtype" v-on:child-emit="listenData" style="width:120px;" class="mr10 left"></VTYPE>
                         <el-select v-model="filters.curStuType" style="width:135px;" placeholder="选择类型" class="mr10" @change="queryStudents">
-                            <el-option label="全部学员" value="1"></el-option>
+                            <el-option label="全部状态" value="1"></el-option>
                             <el-option label="总校学员" value="2"></el-option>
                             <el-option label="完成报名学员" value="3"></el-option>
                         </el-select>
                         <el-select v-model="filters.isAppointment" style="width:135px;" placeholder="选择培训类型" class="mr10" @change="queryStudents" ref="mySel">
-                            <el-option label="全部" value=""></el-option>
+                            <el-option label="全部类型" value=""></el-option>
                             <el-option label="预约培训" value=true></el-option>
                             <el-option label="传统培训" value=false></el-option>
                         </el-select>
@@ -49,10 +49,10 @@
                 </el-table-column>
                 <el-table-column prop="schoolName" label="分校">
                 </el-table-column>
-                <el-table-column prop="trainTypeName" label="培训类型">
-                </el-table-column>
-                <el-table-column prop="appointmentCount" label="预约次数">
-                </el-table-column>
+                <!--<el-table-column prop="trainTypeName" label="培训类型">
+                                                                                </el-table-column>
+                                                                                <el-table-column prop="appointmentCount" label="预约次数">
+                                                                                </el-table-column>-->
                 <el-table-column prop="stage2Progress" label="科二进度">
                 </el-table-column>
                 <el-table-column prop="stage3Progress" label="科三进度">
@@ -60,6 +60,8 @@
                 <el-table-column prop="uploadState" label="备案状态" :formatter="formatter">
                 </el-table-column>
                 <el-table-column prop="reportState" label="上报状态" :formatter="formatter">
+                </el-table-column>
+                <el-table-column prop="signTime" label="报名日期">
                 </el-table-column>
                 <el-table-column label="操作">
                     <template scope="scope">
@@ -93,20 +95,6 @@
                     </el-form-item>
                 </el-form>
             </el-row>
-            <!--<el-row class="review-tool">
-                                                                            <div class="wall-container hide">
-                                                                                <div class="header-two">
-                                                                                    <swiper :options="appointmentSwiperOption" ref="swiper">
-                                                                                        <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
-                                                                                            <p>{{item.date}}</p>
-                                                                                            <p>{{item.week}}</p>
-                                                                                        </swiper-slide>
-                                                                                        <div class="swiper-button-prev" slot="button-prev"></div>
-                                                                                        <div class="swiper-button-next" slot="button-next"></div>
-                                                                                    </swiper>
-                                                                                </div>
-                                                                            </div>
-                                                                        </el-row>-->
             <el-row v-loading="filters.reservation.loading">
                 <div v-for="list in filters.reservation.data" class="classes-review">
                     <div class="coach-photo">
@@ -141,7 +129,11 @@
         <!--学员报名-->
         <el-dialog title="学员报名" v-model="addStuFormVisible" :close-on-click-modal="false" size="full" @close="dialogClose('new')" @open="dialogOpen()">
             <el-form v-if="addStuFormVisible" :model="addStuForm" :rules="stuFormRules" ref="addStuForm" :inline="true" class="demo-form-inline" label-width="85px">
-                <p class="group-title">个人信息</p>
+                <p class="group-title">
+                    个人信息
+                    <el-button size="small" type="primary" @click="readMachine('id')" style="position:absolute;top:15px;left:735px;">身份证读卡器识别</el-button>
+                    <el-button size="small" type="primary" @click="readMachine('high')" :disabled="decline_timer==0?false:true" style="position:absolute;top:15px;left:605px;">{{(decline_timer==0?'高拍仪识别':decline_timer+'秒后识别高拍仪')}}</el-button>
+                </p>
                 <el-form-item label="姓名" prop="studentName">
                     <el-input auto-complete="off" v-model="addStuForm.studentName"></el-input>
                 </el-form-item>
@@ -192,7 +184,7 @@
                 <el-form-item label="电话号码" prop="phone">
                     <el-input auto-complete="off" v-model="addStuForm.phone"></el-input>
                 </el-form-item>
-                <el-form-item label="电子邮箱" prop="email">
+                <el-form-item label="电子邮箱">
                     <el-input auto-complete="off" v-model="addStuForm.email"></el-input>
                 </el-form-item>
                 <el-form-item label="所属单位" class="normal" prop="deptId">
@@ -350,6 +342,7 @@
                 <el-button @click.native="thisShow=false;addStuFormVisible = false" size="large">取消</el-button>
                 <el-button type="primary" size="large" @click="createNew('add')" :loading="btnLoading">保存</el-button>
             </div>
+            <object classid="clsid:10946843-7507-44FE-ACE8-2B3483D179B7" id="CVR_IDCard" name="CVR_IDCard" width="0" height="0" class="hide"></object>
         </el-dialog>
         <!--学员修改-->
         <el-dialog title="修改" v-model="editStuFormVisible" :close-on-click-modal="false" size="full" @close="dialogClose('edit')">
@@ -405,7 +398,7 @@
                 <el-form-item label="电话号码" prop="phone">
                     <el-input auto-complete="off" v-model="editStuForm.phone"></el-input>
                 </el-form-item>
-                <el-form-item label="电子邮箱" prop="email">
+                <el-form-item label="电子邮箱">
                     <el-input auto-complete="off" v-model="editStuForm.email"></el-input>
                 </el-form-item>
                 <el-form-item label="所属单位" class="normal" prop="deptId">
@@ -448,8 +441,9 @@
                 <el-form-item label="联系住所地址" class="addr" prop="address">
                     <el-input auto-complete="off" v-model="editStuForm.address"></el-input>
                 </el-form-item>
+                <!--修改处的发卡信息与添加学员时一致-->
                 <el-form-item label="是否发卡" class="normal" prop="timerStudentInfo.useIccard">
-                    <el-select :disabled="editStuForm.timerStudentInfo.useIccard==='true'" v-model="editStuForm.timerStudentInfo.useIccard" placeholder="请选择是否发卡">
+                    <el-select :disabled="addStuForm.timerStudentInfo.useIccard==='true'" v-model="editStuForm.timerStudentInfo.useIccard" placeholder="请选择是否发卡">
                         <el-option label="否" value="false"></el-option>
                         <el-option label="是" value="true"></el-option>
                     </el-select>
@@ -466,8 +460,8 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="是否跨校" class="normal" prop="timerStudentInfo.isTransfer">
-                    <el-select placeholder="请选择" v-model="addStuForm.timerStudentInfo.isTransfer">
+                <el-form-item label="是否跨校" class="normal">
+                    <el-select placeholder="请选择" v-model="editStuForm.timerStudentInfo.isTransfer">
                         <el-option label="否" :value="false"></el-option>
                         <el-option label="是" :value="true"></el-option>
                     </el-select>
@@ -581,7 +575,7 @@
                                     <el-button type="text" size="small" style="cursor:default;color:#FF4949;" v-if="scope.row.reportState===40">上报失败</el-button>
                                 </el-tooltip>
                                 <el-button type="text" size="small" style="cursor:default;color:#1D8CE0;" v-if="scope.row.starting">拍照中...</el-button>
-                                <el-button type="text" size="small" v-show="!scope.row.starting" :disabled="scope.row.reportState===30" @click.stop="handleTakePhoto(scope.row)">拍照</el-button>
+                                <el-button type="text" size="small" v-show="!scope.row.starting" @click.stop="handleTakePhoto(scope.row)">拍照</el-button>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -609,18 +603,21 @@
             </div>
         </el-dialog>
         <!--学员头像拍照-->
-        <el-dialog title="拍照" v-model="photographFormVisible" :close-on-click-modal="false" class="photograph" size="small" @close="dialogClose('webcam')">
-            <div id="webcam" style="width:320px;height:240px;float:left;margin:20px;"></div>
-            <canvas style="width:320px;height:240px;float:left;margin:20px;margin-left:55px;" id="canvas">
-            </canvas>
-            <div style="width:100%;height:50px;position:absolute;top:155px;left:367px;">
-                <el-button type="primary" @click="onPhotograph()">拍照</el-button>
+        <el-dialog title="拍照" v-model="photographFormVisible" :close-on-click-modal="false" class="photograph" size="tiny" @close="dialogClose('captrue_info')" @open="dialogOpen">
+            <div id="loadCaptrue" style="width:280px;height:280px;outline:1px solid #8391a5;margin-top:10px;">
+                <img :src="infoPhotoUrl" style="width:100%;height:100%;outline:1px solid #8391a5;" v-if="showImageByInfo" />
+                <object classid="clsid:454C18E2-8B7D-43C6-8C17-B1825B49D7DE" id="captrue_info" width="260" height="280" v-if="showCaptrueByInfo"></object>
+            </div>
+            <div style="height:50px;position:absolute;top:50px;right:15px;">
+                <el-button type="primary" @click="onPhotograph('do')" v-if="showCaptrueByInfo">拍照</el-button>
+                <el-button type="primary" @click="onPhotograph('redo')" v-else>重拍</el-button>
             </div>
             <div slot="footer" class="dialog-footer">
-                <el-button @click.native="photographFormVisible = false" size="large">取消</el-button>
-                <el-button type="primary" size="large" @click="savePhoto">保存</el-button>
+                <el-button @click.native="photographFormVisible = false" size="large">关闭</el-button>
+                <el-button type="primary" size="large" @click="savePhoto">确定</el-button>
             </div>
         </el-dialog>
+        <!--选择教练-->
         <el-dialog title="选择教练" v-model="selectFormVisible" :close-on-click-modal="false" size="mini">
             <el-form label-width="85px" class="selCoach mt20 mb10">
                 <el-checkbox-group v-model="bindTeacherList">
@@ -655,7 +652,7 @@
                         </el-col>
                         <el-col :span="14">
                             <p class="t-right">
-                                <el-button type="primary" size="large" @click="()=>{showCard=true;}">&nbsp;{{editStuForm.timerStudentInfo.useIccard=='true'?'换卡':'绑卡'}}&nbsp;</el-button>
+                                <el-button type="primary" size="large" v-show="detailsForm.timerStudentInfo.useIccard=='true'" @click="()=>{showCard=true;getData(editStuForm.studentId)}">&nbsp;{{detailsForm.timerStudentInfo.makeIccard?'换卡':'绑卡'}}&nbsp;</el-button>
                                 <el-button type="primary" size="large" @click="handleOpenEdit(detailsForm,'edit')">&nbsp;修改&nbsp;</el-button>
                                 <el-button type="primary" size="large" @click="handleOpenEdit(detailsForm,'look')">&nbsp;照片{{detailsForm.photosCount}}&nbsp;</el-button>
                                 <span v-if="!isFnCheck">
@@ -691,7 +688,7 @@
                     </el-row>
                     <el-row>
                         <el-col :span="6">
-                            <span>在校状态：{{detailsForm.state===10?'在校':detailsForm.studyType===20?'结业':'离校'}}</span>
+                            <span>在校状态：{{detailsForm.state===10?'在校':detailsForm.state===20?'结业':'离校'}}</span>
                         </el-col>
                         <el-col :span="6">
                             <span>阶段：{{detailsForm.studentState===10?'报名':detailsForm.studyType===20?'科目一':detailsForm.studyType===30?'科目二':detailsForm.studyType===40?'科目三':'科目四'}}</span>
@@ -860,9 +857,9 @@
                     <el-table-column prop="endTime" label="签退时间" width="155">
                     </el-table-column>
                     <!--<el-table-column prop="acceptStudyMin" label="培训学时">
-                                                                                                                                                                                                                                                                                                            </el-table-column>
-                                                                                                                                                                                                                                                                                                            <el-table-column prop="mileage" label="培训里程">
-                                                                                                                                                                                                                                                                                                            </el-table-column>-->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </el-table-column>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <el-table-column prop="mileage" label="培训里程">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </el-table-column>-->
                     <el-table-column prop="isUpload" label="备案状态" :formatter="formatter">
                     </el-table-column>
                 </el-table>
@@ -1453,6 +1450,7 @@
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="detailsFormVisible = false" size="large">取消</el-button>
             </div>
+            <object id="ocx" classid="CLSID:4E194A99-7F41-453E-914C-544BB186A59C" codebase="../../assets/cab/signocx.cab#version=1.0.0.3" width="100" height="50" class="hide"></object>
         </el-dialog>
         <!--电子教学日志详情-->
         <el-dialog title="电子教学日志详情" v-model="classRecordDetailsFormVisible" :close-on-click-modal="false" size="full">
@@ -1545,82 +1543,65 @@
     
             </el-col>
         </el-dialog>
-        <el-dialog title="学员制卡" v-model="showCard">
-            <el-form :model="ruleForm" :inline="true" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+        <!--学员制卡弹窗-->
+        <el-dialog title="学员制卡" v-model="showCard" :show-close="false" :close-on-click-modal="false">
+            <el-form ref="makeCard" :rules="ruleForms" :model="ruleForm" :inline="true" label-width="100px">
                 <el-form-item label="学员姓名" prop="studentName">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.studentName" style="width:400px;"></el-input>
                 </el-form-item>
                 <el-form-item label="身份证号码" prop="IdCardNo">
                     <el-input :disabled="true" v-model="ruleForm.IdCardNo" placeholder="输入证件号" style="width:400px;"></el-input>
                 </el-form-item>
-    
                 <el-form-item label="驾校编号" prop="schNo">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.schNo" style="width:400px;"></el-input>
                 </el-form-item>
-    
                 <el-form-item label="学员ID" prop="stdNo">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.stdNo" style="width:400px;"></el-input>
                 </el-form-item>
-    
                 <el-form-item label="卡号" prop="cardNo">
-                    <el-input auto-complete="off" v-model="ruleForm.cardNo" style="width:400px;"></el-input>
+                    <el-input auto-complete="off" placeholder="请输入学员卡卡号" v-model="ruleForm.cardNo" style="width:400px;"></el-input>
                 </el-form-item>
-    
                 <el-form-item label="已通过科目" prop="thHour">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.thHour" style="width:400px;"></el-input>
                 </el-form-item>
-    
                 <el-form-item label="三阶段学时要求" prop="opHour">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.opHour" style="width:400px;"></el-input>
                 </el-form-item>
-    
                 <el-form-item label="已行驶的里程" prop="hadRunMile">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.hadRunMile" style="width:400px;"></el-input>
                 </el-form-item>
-    
                 <el-form-item label="已学学时" prop="hadSubMinute">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.hadSubMinute" style="width:400px;"></el-input>
                 </el-form-item>
-    
-                <el-form-item label="车型" class="normal" prop="carType">
+                <el-form-item label="车型" class="normal">
                     <el-select :disabled="ruleForm.carType!=''" v-model="ruleForm.carType" placeholder="请选择培训车型">
                         <el-option v-for="item in carTypeOptions" :label="item.label" :value="item.value"></el-option>
                     </el-select>
                 </el-form-item>
-    
                 <el-form-item label="第一指纹" prop="fingerMB1">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.fingerMB1" style="width:400px;"></el-input>
-    
                 </el-form-item>
-    
                 <el-form-item label="第二指纹" prop="fingerMB2">
                     <el-input :disabled="true" auto-complete="off" v-model="ruleForm.fingerMB2" style="width:400px;"></el-input>
-    
                 </el-form-item>
-    
                 <!--特殊卡指纹待定-->
                 <el-form-item label="特殊卡指纹" prop="noFinger">
                     <el-switch :disabled="true" on-text="" off-text="" v-model="ruleForm.noFinger"></el-switch>
                 </el-form-item>
-    
                 <el-form-item style="float:right;margin-right:44px;">
-                    <el-button type="primary" @click="XykSetInfo('ruleForm')">立即创建</el-button>
-                    <el-button @click="()=>showCard=false">取消</el-button>
+                    <el-button type="primary" @click="XykSetInfo('ruleForm')" :loading="btnLoading">立即创建</el-button>
+                    <el-button @click="cancelMake">取消</el-button>
                 </el-form-item>
             </el-form>
+            <object id="myobj" classid="clsid:93201C87-E8B2-4B20-A61A-6D4DFBD2D140" class="hide" /></object>
         </el-dialog>
-        <!--制卡-->
-        <el-input placeholder="Adaloiha" v-model="input2"></el-input>
-        <object id="myobj" border="1" height=30 width=200 align="center" classid="clsid:93201C87-E8B2-4B20-A61A-6D4DFBD2D140" />
-        </object>
-        <el-button type='primary' @click="XykReadInfo">clkui</el-button>
-        <object id="ocx" classid="CLSID:4E194A99-7F41-453E-914C-544BB186A59C" codebase="../../assets/cab/signocx.cab#version=1.0.0.3" width="100" height="50" class="hide"></object>
-        <OBJECT classid="clsid:10946843-7507-44FE-ACE8-2B3483D179B7" id="CVR_IDCard" name="CVR_IDCard" width="0" height="0" class="hide"></OBJECT>
     </section>
 </template>
 
 <script>
-var map, card_timer;
+var map;
+//拍摄身份证次数，1代表已拍正面，2代表已拍反面
+var idCardPhotographCount = 0;
 import $ from "jquery";
 import { request } from "../../api/api";
 import PCA from "../../components/common/pca.vue";
@@ -1631,23 +1612,7 @@ import { global } from "../../assets/javascript/global";
 export default {
     data() {
         return {
-            input2: '',
-            ruleForm: {
-                studentName: '青青子衿',
-                IdCardNo: '123456',
-                schNo: '90028',
-                cardNo: '2938',
-                stdNo: '9527',
-                noFinger: false,
-                fingerMB1: '03025F170000FFFF8003800380018001800180018001800180018001800180018001800180018001800',
-                fingerMB2: '03025C170000FFFFE003C001C0018001800180018001800180018001800180018001800180018001800',
-                thHour: 'km1;km2',
-                opHour: '0,12,0,0;24,2,0,50;20,16,4,300',
-                hadRunMile: '0;50;0;0',
-                hadSubMinute: '15,15,15;15,15,15;0,0,0;0,0,0',
-                carType: 'C1'
-            },
-            showCard: true,
+            showCard: false,
             bindTeacherList: [],
             bindTeacherInfo: [],
             bindTeacherInfo1: [],
@@ -1664,6 +1629,9 @@ export default {
             showImage: false,
             showPaiZhao: false,
             showSave: false,
+            showCaptrueByInfo: true,
+            showImageByInfo: false,
+            infoPhotoUrl: "",
             reportStudents: {
                 isFnCheck: JSON.parse(sessionStorage.getItem("user")).isFnCheck,
                 studentIdList: []
@@ -1761,6 +1729,7 @@ export default {
                 registCity: "",
                 registCounty: "",
                 registAddress: "",
+                photosUrl: "",
                 appointmentStudentInfo: {
                     appointmentType: "20",
                     costBalance: "",
@@ -1788,9 +1757,14 @@ export default {
                     trunkNeck: "正常",
                     residenceNo: "",
                     isTransfer: false,
-                    useIccard: 'false'
+                    useIccard: "false"
                 },
                 bindTeacherInfo: []
+            },
+            ruleForms:{
+                cardNo: [
+                    { required: true, message: "请选择证件类型并填写证件号码", trigger: "blur" }
+                ],
             },
             stuFormRules: {
                 studentName: [
@@ -1858,9 +1832,6 @@ export default {
                 ],
                 address: [
                     { required: true, message: "请填写联系住所地址", trigger: "blur" }
-                ],
-                "timerStudentInfo.useIccard": [
-                    { required: true, message: "请选择是否为发卡学员", trigger: "change" }
                 ]
                 // brachSchool: [
                 //     { required: true, message: "请选择分校", trigger: "change" }
@@ -1931,7 +1902,7 @@ export default {
                     residenceNo: "",
                     isTransfer: false,
                     uploadState: 0,
-                    useIccard: 'false'
+                    useIccard: "false"
                 },
                 bindTeacherInfo: [],
                 photosCount: "",
@@ -1977,6 +1948,7 @@ export default {
                 registCity: "",
                 registCounty: "",
                 registAddress: "",
+                photosUrl: "",
                 appointmentStudentInfo: {
                     appointmentType: "10",
                     costBalance: "",
@@ -2004,7 +1976,7 @@ export default {
                     trunkNeck: "正常",
                     residenceNo: "",
                     isTransfer: false,
-                    useIccard: 'false'
+                    useIccard: "false"
                 },
                 bindTeacherInfo: []
             },
@@ -2056,95 +2028,26 @@ export default {
                 disabledDate(time) {
                     return time.getTime() < Date.now() - 8.64e7;
                 }
-            }
+            },
+            ruleForm: {
+                studentName: '',
+                IdCardNo: '',
+                schNo: '',
+                cardNo: '',
+                stdNo: '',
+                noFinger: false,
+                fingerMB1: '',
+                fingerMB2: '',
+                thHour: '',
+                opHour: '',
+                hadRunMile: '',
+                hadSubMinute: '',
+                carType: ''
+            },
+            decline_timer: 5
         }
     },
     methods: {
-        XykReadInfo() {
-            // alert(10086);
-            // var beg = new Date();
-            var addsCard = document.getElementById("myobj");
-            // console.log(addsCard);
-
-            addsCard.SetReaderType('AYUSB');
-            // // var results = addsCard.ReadCard();
-            var revalue = addsCard.XykReadInfo();
-            if (revalue == "") revalue = "错误:" + addsCard.LastError;
-            this.input2 = revalue;
-            console.log(revalue);
-
-            // var end = new Date();
-            // alert(end.getSeconds() * 1000 + end.getMilliseconds() - (beg.getSeconds() * 1000 + beg.getMilliseconds()));
-        },
-        XykSetInfo() {
-            console.log(this.ruleForm)
-            // var obj = 
-            var setCard = document.getElementById('myobj');
-            setCard.SetReaderType('AYUSB');
-            let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
-            var info = setCard.XykSetInfo(
-                this.ruleForm.schNo, 
-                this.ruleForm.stdNo, 
-                this.ruleForm.studentName, 
-                this.ruleForm.carType, 
-                this.ruleForm.IdCardNo, 
-                this.ruleForm.fingerMB1, 
-                this.ruleForm.fingerMB2, 
-                this.ruleForm.thHour, 
-                this.ruleForm.opHour, 
-                this.ruleForm.hadRunMile, 
-                "",
-                this.ruleForm.hadSubMinute, 
-                finger);
-            // console.log(info);
-            if (info == "") info = "错误:" + setCard.LastError;
-            this.input2 = info;
-        },
-        XykSetInfoBeg() {
-            var setCard = document.getElementById('myobj');
-            setCard.SetReaderType('AYUSB');
-            let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
-            var re = setCard.XykSetInfoBeg(
-                this.ruleForm.schNo, 
-                this.ruleForm.stdNo, 
-                this.ruleForm.studentName, 
-                this.ruleForm.carType,
-                 this.ruleForm.IdCardNo, 
-                 this.ruleForm.fingerMB1, 
-                 this.ruleForm.fingerMB2, 
-                 this.ruleForm.thHour, 
-                 this.ruleForm.opHour, 
-                 this.ruleForm.hadRunMile, 
-                 "",
-                 this.ruleForm.hadSubMinute, 
-                 finger);
-            if (re == "") re = "设置中...";
-            this.input2 = re;
-        },
-
-        ieXykSetInfoEnd(Re) {
-            var setCard = document.getElementById('myobj');
-            if (Re == "") Re = "错误:" + setCard.LastError;
-            this.input2 = Re;
-        },
-        XykFingerCheck() {
-            var setCard = document.getElementById('myobj');
-            var re = setCard.XykFingerCheck();
-            if (re == "") re = "错误:" + setCard.LastError;
-            this.input2 = re;
-        },
-        XykFingerCheckBeg() {
-             var setCard = document.getElementById('myobj');
-            var re = setCard.XykFingerCheckBeg();
-            if (re == "") re = "设置中..."; this.input2 = re;
-        },
-        ieXykFingerCheckEnd(Re) {
-             var setCard = document.getElementById('myobj');
-            if (Re == "") Re = "错误:" + setCard.LastError; this.input2 = Re;
-        },
-        resetForms(formName) {
-            this.$refs[formName].resetFields();
-        },
         handleShowNewWin() {
             this.addStuFormVisible = true;
             this.addStuForm = {
@@ -2210,7 +2113,7 @@ export default {
                     trunkNeck: "正常",
                     residenceNo: "",
                     isTransfer: false,
-                    useIccard: 'false'
+                    useIccard: "false"
                 },
                 bindTeacherInfo: []
             };
@@ -2227,6 +2130,14 @@ export default {
                     this.addStuForm.address = results + data;
                 });
             });
+            this.decline_timer = 5;
+            var interval = setInterval(() => {
+                if (this.decline_timer == 0) {
+                    clearInterval(interval);
+                    return;
+                }
+                this.decline_timer--;
+            }, 1000);
         },
         //获取学员列表
         queryStudents() {
@@ -2235,14 +2146,11 @@ export default {
             global.printLog(args);
             setTimeout(() => {
                 request.basic.student.query.list(args).then((res) => {
-                    // console.error(res);
-
                     if (res.success === true) {
                         global.printLog(res);
                         this.pageLoading = false;
                         this.total = res.object.num;
                         this.students = res.object.list;
-                        console.error(this.total);
                     }
                 });
             }, 1000);
@@ -2260,9 +2168,7 @@ export default {
                     this.detailsForm = data;
                     this.editStuForm = data;
 
-                    this.editStuForm.timerStudentInfo.useIccard = data.timerStudentInfo.useIccard.toString();
-                    // console.error(typeof data.timerStudentInfo.useIccard);
-                    // console.log(data);
+                    this.editStuForm.timerStudentInfo.useIccard = global.convertToString(data.timerStudentInfo.useIccard);
                     this.editStuForm.signTime = data.signTime !== null ? new Date(data.signTime) : "";
                     this.editStuForm.enterTime = data.enterTime !== null ? new Date(data.enterTime) : "";
                     this.editStuForm.birthday = data.birthday !== null ? new Date(data.birthday) : "";
@@ -2281,6 +2187,7 @@ export default {
                     }
                     this.image = data.timerStudentInfo.photosUrl;
                     this.studentPhoto = this.detailsForm.timerStudentInfo.photosUrl;
+                    this.editStuForm.photosUrl = data.timerStudentInfo.photosUrl;
                     this.selectedUnitOptions = [];
                     var units = data.deptIdListInfo;
                     if (units.length) {
@@ -2574,14 +2481,9 @@ export default {
         },
         //学员报名/编辑
         createNew(target) {
-            // console.log(this)
             if (target === "add") {
-
-
                 this.$refs["addStuForm"].validate((valid) => {
                     if (valid) {
-                        // if (this.addStuForm.timerStudentInfo.useIccard == 'false') {
-                        // alert('我不要卡')
                         if (this.appointmentsLimit && this.addStuForm.isAppointment) {
                             let dCount = this.$refs.dayCount.$refs.input;
                             let wCount = this.$refs.weekCount.$refs.input;
@@ -2635,6 +2537,7 @@ export default {
                                 }
                             }
                             if (that.image !== "") {
+                                that.btnLoading = true;
                                 let para = {
                                     studentName: that.addStuForm.studentName,
                                     studentPhone: that.addStuForm.phone,
@@ -2649,11 +2552,13 @@ export default {
                                         that.addStuForm.timerStudentInfo.photosId = data.photosId;
                                         that.addStuForm.timerStudentInfo.proPhotosId = data.proPhotosId;
                                         that.addStuForm.timerStudentInfo.photosUrl = data.photosUrl;
+                                        that.addStuForm.photosUrl = data.photosUrl;
                                     }
                                     onCreate(that);
                                 });
                             }
                             else {
+                                that.btnLoading = true;
                                 onCreate(that);
                             }
                         }
@@ -2666,18 +2571,18 @@ export default {
 
                             let formData = Object.assign({}, that.addStuForm);
                             global.printLog(JSON.stringify(formData));
-                            //return;
+                            global.printLog(that.addStuForm);
                             request.basic.student.create.student(formData).then((res) => {
-                                // console.warn(res);
+                                that.btnLoading = false;
                                 if (res.success) {
+                                    if (that.addStuForm.timerStudentInfo.useIccard == 'true') {
+                                        that.showCard = true;
+                                        that.getData(res.object);
+                                    }
                                     that.resetForm("addStuForm");
                                     that.$message.success({ message: "学员添加成功！" });
                                     that.addStuFormVisible = false;
                                     that.queryStudents();
-                                    // 如果 选择了 发卡则调用
-
-                                    console.log(parseInt(that.total) + 1);
-
                                 }
                                 else {
                                     that.addStuForm.signTime = that.addStuForm.signTime !== "" ? new Date(that.addStuForm.signTime) : that.addStuForm.signTime;
@@ -2686,13 +2591,10 @@ export default {
                                     that.addStuForm.effectiveDate = that.addStuForm.effectiveDate !== "" ? new Date(that.addStuForm.effectiveDate) : that.addStuForm.effectiveDate;
                                     that.addStuForm.drivingLicenceTime = that.addStuForm.drivingLicenceTime !== "" ? new Date(that.addStuForm.drivingLicenceTime) : that.addStuForm.drivingLicenceTime;
                                     that.$message.error("学员添加失败！原因：" + res.message);
+                                    global.printLog(that.addStuForm);
                                 }
                             });
                         }
-                        // } else {
-                        //     // alert('我要卡')
-                        //     this.showCard = true;
-                        // }
                     }
                 });
             }
@@ -2795,15 +2697,18 @@ export default {
                                     this.editStuForm.timerStudentInfo.photosId = data.photosId;
                                     this.editStuForm.timerStudentInfo.proPhotosId = data.proPhotosId;
                                     this.editStuForm.timerStudentInfo.photosUrl = data.photosUrl;
+                                    this.editStuForm.photosUrl = data.photosUrl;
                                     onUpdate(this);
                                 }
                                 else {
-                                    this.editStuForm.signTime = new Date(this.editStuForm.signTime);
-                                    this.editStuForm.enterTime = new Date(this.editStuForm.enterTime);
-                                    this.editStuForm.birthday = new Date(this.editStuForm.birthday);
-                                    this.editStuForm.effectiveDate = new Date(this.editStuForm.effectiveDate);
-                                    this.editStuForm.drivingLicenceTime = new Date(this.editStuForm.drivingLicenceTime);
-                                    this.$message.error("学员修改失败！原因：" + res.message);
+                                    global.printLog(this.editStuForm.drivingLicenceTime);
+                                    this.editStuForm.signTime = this.editStuForm.signTime === "" ? "" : new Date(this.editStuForm.signTime);
+                                    this.editStuForm.enterTime = this.editStuForm.enterTime === "" ? "" : new Date(this.editStuForm.enterTime);
+                                    this.editStuForm.birthday = this.editStuForm.birthday === "" ? "" : new Date(this.editStuForm.birthday);
+                                    this.editStuForm.effectiveDate = this.editStuForm.effectiveDate === "" ? "" : new Date(this.editStuForm.effectiveDate);
+                                    this.editStuForm.drivingLicenceTime = this.editStuForm.drivingLicenceTime === "" ? "" : new Date(this.editStuForm.drivingLicenceTime);
+                                    global.printLog(this.editStuForm);
+                                    this.$message.error("学员修改失败123！原因：" + res.message);
                                     this.btnLoading = false;
                                 }
                             });
@@ -2846,6 +2751,7 @@ export default {
                                 "oldCarType": that.editStuForm.oldCarType,
                                 "drivingLicenceNo": that.editStuForm.drivingLicenceNo,
                                 "drivingLicenceTime": that.formatData(that.editStuForm.drivingLicenceTime, "date", "yyyy-MM-dd"),
+                                "photosUrl": that.editStuForm.photosUrl,
                                 "nationality": that.editStuForm.nationality,
                                 "signMoney": that.editStuForm.signMoney,
                                 "comments": that.editStuForm.comments,
@@ -2888,13 +2794,13 @@ export default {
                                     "rightLegs": that.editStuForm.timerStudentInfo.rightLegs,
                                     "trunkNeck": that.editStuForm.timerStudentInfo.trunkNeck,
                                     "residenceNo": that.editStuForm.timerStudentInfo.residenceNo,
-                                    "isTransfer": that.editStuForm.timerStudentInfo.isTransfer
+                                    "isTransfer": that.editStuForm.timerStudentInfo.isTransfer,
+                                    "useIccard": that.editStuForm.timerStudentInfo.useIccard
                                 },
                                 bindTeacherInfo: that.editStuForm.bindTeacherInfo
                             }
                             //let para = Object.assign({}, updatePara);
-                            //global.printLog(JSON.stringify(updatePara));
-                            //return;
+                            global.printLog(JSON.stringify(updatePara));
                             request.basic.student.update(updatePara).then((res) => {
                                 if (res.success) {
                                     that.queryStudents();
@@ -2904,7 +2810,8 @@ export default {
                                 else {
                                     that.editStuForm.signTime = new Date(that.editStuForm.signTime);
                                     that.editStuForm.enterTime = new Date(that.editStuForm.enterTime);
-                                    that.$message.error("学员修改失败！原因：" + res.message);
+                                    that.$message.error("学员修改失败456！原因：" + res.message);
+                                    global.printLog(that.editStuForm);
                                 }
                                 that.btnLoading = false;
                             });
@@ -2945,10 +2852,6 @@ export default {
         stageChange(data) {
             let stuId = this.detailsForm.studentId;
             this.queryTeachLog(stuId, data);
-        },
-        //车型切换
-        modelChange(val) {
-            //global.printLog(this.$refs.model.value);
         },
         studyAfterPaidChange(evt) {
             if (evt.target.checked) {
@@ -3007,14 +2910,10 @@ export default {
                 this.thisShow = false;
                 this.addStuForm.registProvince = this.schoolCode.toString().substring(0, 2) + "0000";
                 this.addStuForm.registCity = this.schoolCode.toString().substring(0, 4) + "00";
-
                 this.addStuForm.province = "510000";
                 this.addStuForm.city = "510100";
                 this.addStuForm.county = "510101";
                 this.resetForm("addStuForm");
-            }
-            else if (target === "webcam") {
-                $("#webcam").children().remove();
             }
             else if (target === "high") {
                 this.photosUrl = "";
@@ -3036,73 +2935,25 @@ export default {
                 // list[0].click = true;
                 this.filters.reservation.date = new Date().Format("yyyy-MM-dd");
             }
-            else {
-                this.thisShow = false;
-                //this.$destroy();
-                //global.printLog(this.$refs.pca.destroy);
-            }
-            clearInterval(card_timer);
         },
         //Dialog被打开回调
         dialogOpen() {
             $(".el-cascader-menus").css("z-index", "20002");
             if (this.photographFormVisible) {
-                $(document).ready(function () {
-                    var pos = 0;
-                    var ctx = null;
-                    var image = [];
-                    this.isCam = false;
-                    //获取画布对象
-                    var canvas = document.getElementById("canvas");
-                    //获取画布的Context对象
-                    ctx = canvas.getContext("2d");
-                    //复制画布上的像素数据
-                    image = ctx.getImageData(0, 0, 320, 240);
-                    //保存拍照图片到画布
-                    var saveCB = function (data) {
-                        var col = data.split(";");
-                        var img = image;
-                        for (var i = 0; i < 320; i++) {
-                            var tmp = parseInt(col[i]);
-                            img.data[pos + 0] = (tmp >> 16) & 0xff;
-                            img.data[pos + 1] = (tmp >> 8) & 0xff;
-                            img.data[pos + 2] = tmp & 0xff;
-                            img.data[pos + 3] = 0xff;
-                            pos += 4;
-                        }
-                        if (pos >= 4 * 320 * 240) {
-                            //将图片数据放回画布
-                            ctx.putImageData(img, 0, 0);
-                            pos = 0;
-                            this.isCam = true;
-                        }
-                    };
-
-                    jQuery("#webcam").webcam({
-                        width: 320,
-                        height: 240,
-                        mode: "callback",
-                        swffile: "http://www.jq22.com/demo/jQuery-webcam-master/jscam_canvas_only.swf",
-                        onTick: function () { },
-                        onSave: saveCB,
-                        onCapture: function () {
-                            webcam.save();
-                        },
-                        debug: function (type, string) { },
-                        onLoad: function () {
-                            var cams = webcam.getCameraList();
-                            if (cams.length > 0) {
-                                this.isCam = true;
-                                for (var i in cams) {
-                                    $("#cams").append("<li>" + cams[i] + "</li>");
-                                }
-                            }
-                            else {
-                                this.isCam = false;
-                            }
-                        }
-                    });
-                });
+                this.showImageByInfo = false;
+                this.showCaptrueByInfo = true;
+                setTimeout(() => {
+                    var captrueInfo = document.getElementById("captrue_info");
+                    if (typeof captrueInfo.bStopPlay === "undefined") {
+                        this.$message.error("拍照设备不存在或浏览器不支持");
+                    }
+                    else {
+                        captrueInfo.bStopPlay();
+                        var startPlay = captrueInfo.bStartPlay2(0);
+                        captrueInfo.bSetMode(0);
+                    }
+                }, 1000);
+                global.printLog("检测设备是否存在......");
             }
             else if (this.photoFormVisible) {
                 let captrue = document.getElementById("captrue");
@@ -3112,10 +2963,83 @@ export default {
             }
             else if (this.addStuFormVisible || this.editStuFormVisible) {
                 this.thisShow = true;
-                card_timer = setInterval(() => {
-                    var CVR_IDCard = document.getElementById("CVR_IDCard");
+            }
+        },
+        //传输高拍仪照片到服务器
+        onPhotograph(tag) {
+            if (tag === "do") {
+                var ip;
+                var port;
+                var captrueInfo = document.getElementById("captrue_info");
+                if (typeof captrueInfo.bStopPlay === "undefined") {
+                    this.$message.error("拍照设备不存在或浏览器不支持");
+                }
+                else {
+                    var startPlay = captrueInfo.bStartPlay2(0);
+                    captrueInfo.bSetMode(0);
+                    var str = captrueInfo.bSaveJPG("D:\\", "2");
+                    global.printLog("str：" + str);
+                    captrueInfo.bStopPlay();
+                    let url = request.baseUrl + "/sc/common/highShotMeter/getPhotographInfo";
+                    url = url.replace("http://", "").replace("https://", "");
+                    var rooturl = url.substring(0, url.indexOf("/"));
+                    var functionUrl = url.substring(url.indexOf("/"), url.length);
+                    var index = rooturl.indexOf(":");
+                    if (index < 0) {
+                        ip = rooturl;
+                        port = 80;
+                    }
+                    else {
+                        ip = rooturl.substring(0, index);
+                        port = rooturl.substring(index + 1);
+                    }
+                    global.printLog("ip：" + ip);
+                    global.printLog("port：" + port);
+                    global.printLog("functionUrl：" + functionUrl);
+                    global.printLog("以上没有问题，开始上传本地照片到服务器...");
+                    //上传本地照片到服务器
+                    //122平台更改上传照片方法：sUpLoadImageEx2，最后一个参数由true变成false就好了；
+                    var result = captrueInfo.sUpLoadImageEx2("D:\\2.JPG", ip, port, functionUrl, true, false);
+                    global.printLog(result);
+                    global.printLog("result:" + result);
+                    let data = JSON.parse(eval(JSON.stringify(result)));
+                    if (data.success) {
+                        global.printLog(data.object);
+                        this.infoPhotoUrl = "data:image/jpeg;base64," + data.object;
+                    }
+                    this.showImageByInfo = true;
+                    this.showCaptrueByInfo = false;
+                }
+            }
+            else {
+                this.showImageByInfo = false;
+                this.showCaptrueByInfo = true;
+                setTimeout(() => {
+                    var captrueInfo = document.getElementById("captrue_info");
+                    if (typeof captrueInfo.bStopPlay === "undefined") {
+                        this.$message.error("拍照设备不存在或浏览器不支持");
+                    }
+                    else {
+                        captrueInfo.bStopPlay();
+                        var startPlay = captrueInfo.bStartPlay2(0);
+                    }
+                }, 1000);
+            }
+        },
+        //读取身份证/读取高拍仪
+        readMachine(type) {
+            if (type === "id") {
+                this.$message.info("暂未开通身份证读取功能，敬请期待");
+            }
+            else {
+                var CVR_IDCard = document.getElementById("CVR_IDCard");
+                if (typeof (CVR_IDCard.ReadCard) === "undefined") {
+                    this.$message.error("浏览器无法支持高拍仪读取信息，请更换为IE11浏览器重试");
+                }
+                else {
                     var results = CVR_IDCard.ReadCard();
-                    console.log(results);
+                    global.printLog("results：" + results);
+                    global.printLog(results === "0");
                     if (results === "0") {
                         this.thisShow = false;
                         //获取姓名
@@ -3138,36 +3062,51 @@ export default {
                         var effectiveDate = CVR_IDCard.ExpiredDate.replace(/\./g, "-");
                         //获取头像base64数据
                         var photoOfBase64 = CVR_IDCard.Picture;
-                        this.addStuForm.registAddress = address;
-                        this.addStuForm.birthday = new Date(birthDay);
-                        this.addStuForm.cardNo = cardNo;
-                        this.addStuForm.effectiveDate = new Date(effectiveDate);
-                        this.addStuForm.gender = global.convertToString(gender);
-                        this.addStuForm.studentName = name;
-                        this.addStuForm.registProvince = registProvince;
-                        this.addStuForm.registCity = registCity;
-                        this.addStuForm.registCounty = registCounty;
-                        this.image = "data:image/jpeg;base64," + photoOfBase64;
-                        let province = registProvince.toString();
-                        if (province !== "") {
-                            if (province.substring(0, 4) === this.schoolCode.toString().substring(0, 4)) {
-                                this.addStuForm.register = "1";
+                        if (this.addStuFormVisible) {
+                            this.addStuForm.registAddress = address;
+                            this.addStuForm.birthday = new Date(birthDay);
+                            this.addStuForm.cardNo = cardNo;
+                            this.addStuForm.effectiveDate = new Date(effectiveDate);
+                            this.addStuForm.gender = global.convertToString(gender);
+                            this.addStuForm.studentName = name;
+                            this.addStuForm.registProvince = registProvince;
+                            this.addStuForm.registCity = registCity;
+                            this.addStuForm.registCounty = registCounty;
+                            this.image = "data:image/jpeg;base64," + photoOfBase64;
+                            let province = registProvince.toString();
+                            if (province !== "") {
+                                if (province.substring(0, 4) === this.schoolCode.toString().substring(0, 4)) {
+                                    this.addStuForm.register = "1";
+                                }
                             }
                         }
-                        clearInterval(card_timer);
+                        else if (this.editStuFormVisible) {
+                            this.editStuForm.registAddress = address;
+                            this.editStuForm.birthday = new Date(birthDay);
+                            this.editStuForm.cardNo = cardNo;
+                            this.editStuForm.effectiveDate = new Date(effectiveDate);
+                            this.editStuForm.gender = global.convertToString(gender);
+                            this.editStuForm.studentName = name;
+                            this.editStuForm.registProvince = registProvince;
+                            this.editStuForm.registCity = registCity;
+                            this.editStuForm.registCounty = registCounty;
+                            this.image = "data:image/jpeg;base64," + photoOfBase64;
+                            let province = registProvince.toString();
+                            if (province !== "") {
+                                if (province.substring(0, 4) === this.schoolCode.toString().substring(0, 4)) {
+                                    this.editStuForm.register = "1";
+                                }
+                            }
+                        }
                         setTimeout(() => {
                             this.thisShow = true;
                         }, 200);
                     }
-                }, 5000);
+                    else {
+                        global.printLog("进入高拍仪，还没刷身份证");
+                    }
+                }
             }
-        },
-        onPhotograph() {
-            // if (!this.isCam) {
-            //     this.$message({ message: "请先启动摄像头", type: "warning" });
-            //     return;
-            // }
-            webcam.capture();
         },
         openFile() {
             this.$refs.upload.click();
@@ -3201,16 +3140,13 @@ export default {
             reader.readAsDataURL(file);
         },
         savePhoto() {
-            $("#webcam").children().remove();
-            var canvas = document.getElementById("canvas");
-            var PHOTOOFBASE64 = canvas.toDataURL("image/png");
-            this.image = PHOTOOFBASE64;
-            PHOTOOFBASE64 = PHOTOOFBASE64.substring(PHOTOOFBASE64.indexOf(",") + 1);
+            this.image = this.infoPhotoUrl;
             this.photographFormVisible = false;
         },
         handleOpenEdit(stu, target) {
             if (target === "edit") {
                 this.detailsFormVisible = false;
+                this.addStuForm.timerStudentInfo.useIccard = global.convertToString(this.detailsForm.timerStudentInfo.useIccard);
                 setTimeout(() => {
                     this.thisShow = true;
                     this.editStuFormVisible = true;
@@ -3275,34 +3211,37 @@ export default {
         },
         handleTakePhoto(row) {
             global.printLog("row" + row);
+            idCardPhotographCount = 0;
             this.showCaptrue = true;
             this.showImage = false;
-            let type = row.photosType;
-            var captrue = document.getElementById("captrue");
-            if (typeof captrue.bStopPlay === "undefined") {
-                this.$message.error("拍照设备不存在或浏览器不支持");
-                return;
-            }
-            global.printLog("captrue" + captrue);
-            this.showSave = false;
-            this.showPaiZhao = false;
-            this.showCaptrue = true;
-            this.showImage = false;
-            let that = this;
-            this.curRowPhotos = row;
-            row.starting = true;
-            var timer = setInterval(function () {
-                if (captrue !== null) {
-                    global.printLog("进入timer事件：" + timer);
-                    clearInterval(timer);
-                    global.printLog("准备进入高拍仪拍照方法：" + timer);
-                    HIGHSHOTMETER.doPhotograph(type, captrue, that);
+            setTimeout(() => {
+                let type = row.photosType;
+                var captrue = document.getElementById("captrue");
+                if (typeof captrue.bStopPlay === "undefined") {
+                    this.$message.error("拍照设备不存在或浏览器不支持");
+                    return;
                 }
-                else {
-                    global.printLog("loading...");
-                    captrue = document.getElementById("captrue");
-                }
-            }, 500);
+                global.printLog("captrue" + captrue);
+                this.showSave = false;
+                this.showPaiZhao = false;
+                this.showCaptrue = true;
+                this.showImage = false;
+                let that = this;
+                this.curRowPhotos = row;
+                row.starting = true;
+                var timer = setInterval(function () {
+                    if (captrue !== null) {
+                        global.printLog("进入timer事件：" + timer);
+                        clearInterval(timer);
+                        global.printLog("准备进入高拍仪拍照方法：" + timer);
+                        HIGHSHOTMETER.doPhotograph(type, captrue, that);
+                    }
+                    else {
+                        global.printLog("loading...");
+                        captrue = document.getElementById("captrue");
+                    }
+                }, 500);
+            }, 200);
         },
         handleSelectionChange(data) {
             this.recordStudents.studentIdList = [];
@@ -3317,8 +3256,6 @@ export default {
             }
             else if (command === "export") {
                 let downLink = document.getElementById("down-link");
-                //global.printLog(request.baseUrl + "/sc/student/exportStudent?keyWord=" + this.filters.keyWord + "&carType=" + (this.filters.curCarType === "" ? 0 : this.filters.curCarType) + "&schoolCode=" + this.schoolCode + "&isAppointment=" + this.filters.isAppointment + "&queryType=" + this.filters.curStuType);
-                //return;
                 downLink.setAttribute("href", request.baseUrl + "/sc/student/exportStudent?keyWord=" + this.filters.keyWord + "&carType=" + (this.filters.curCarType === "" ? 0 : this.filters.curCarType) + "&schoolCode=" + this.schoolCode + "&isAppointment=" + this.filters.isAppointment + "&queryType=" + this.filters.curStuType);
                 downLink.click();
             }
@@ -3388,7 +3325,6 @@ export default {
             }
         },
         handleReView(target) {
-            global.printLog("target：" + target);
             if (target === -1) {
                 global.printLog(this);
                 this.showSave = false;
@@ -3397,6 +3333,7 @@ export default {
                 this.handleTakePhoto(this.curRowPhotos);
             }
             else if (target === 0) {
+                global.printLog(idCardPhotographCount);
                 var photosUrl = HIGHSHOTMETER.savePhoto(request.baseUrl + "/sc/student/uploadStudentCollectPhoto");
                 global.printLog(photosUrl);
                 global.printLog(JSON.stringify(photosUrl));
@@ -3510,14 +3447,157 @@ export default {
                 }
             }
         },
-        readIdCard() {
-            // let info = this.getIDCardInfo();
-            // console.error(info)
-
-            if (typeof (info) === "object") {
-                console.log(info);
-                console.error(1008611);
+        XykReadInfo() {
+            // alert(10086);
+            // var beg = new Date();
+            var addsCard = document.getElementById("myobj");
+            // console.log(addsCard);
+            addsCard.SetReaderType('AYUSB');
+            // // var results = addsCard.ReadCard();
+            var revalue = addsCard.XykReadInfo();
+            if (revalue == "") revalue = "错误:" + addsCard.LastError;
+            if (revalue == "") {
+                revalue = "错误:" + addsCard.LastError;
+                this.$message.error("学员卡读取失败！原因：" + revalue);
+            } else {
+                this.$message({ message: "学员卡读取成功！", type: "success" });
             }
+            // var end = new Date();
+            // alert(end.getSeconds() * 1000 + end.getMilliseconds() - (beg.getSeconds() * 1000 + beg.getMilliseconds()));
+        },
+        XykSetInfo() {
+            this.$refs["makeCard"].validate((valid) => {
+                if (valid) {
+                    this.loading = true;
+                    var setCard = document.getElementById('myobj');
+                    setCard.SetReaderType('AYUSB');
+                    let tmp = this.ruleForm;
+                    let schNo1 = global.convertToString(tmp.schNo);
+                    let stdNo = tmp.stdNo;
+                    let sth;
+                    if (schNo1.length === 9) {
+                        sth = schNo1.split('');
+                        sth.splice(4, 1);
+                        sth = sth.join('');
+                    }
+                    switch (stdNo.length) {
+                        case 4:
+                            stdNo = '0000' + stdNo;
+                            break;
+                        case 5:
+                            stdNo = '000' + stdNo;
+                            break;
+                        case 6:
+                            stdNo = '00' + stdNo;
+                            break;
+                        case 7:
+                            stdNo = '0' + stdNo;
+                            break;
+
+                    }
+                    let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
+                    var info = setCard.XykSetInfo(
+                        sth, //
+                        stdNo,
+                        tmp.studentName, //
+                        tmp.carType, //
+                        tmp.IdCardNo, //
+                        '03015B110000F03EC01E800E8006800680028002800280028002800280028002800280028002800200000000000000000000000000000000200B2ADE2717AB7E6818037E3D2A813E4A37851E23BFE7FE578D81BF21A06A7F64A5995F2FA76C3F6D2D84F75FB004FF24B0519F29B42BBF19B527BF63BE46BF261BD33D000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',//tmp.fingerMB1,
+                        '0302531A0000FFFF80038001800180018001800180018001800180018001800180018001800180018001FFFF1C6C000000000000000000000E06945E440FD89E1094ECBE4E1C053E0830E8BE66B0DCDE58BC485E6BC51D7E668F1AFF1B1F009F27A756FF3AAAC63F4EB1C6FF5139091F0EC024BF54C249FF60C5069F373CCBFD313D5FBD4B2B06BA08C6E2924AAD9C3816BA0DF909448DD323AB04571FB3C72F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', // tmp.fingerMB2
+                        tmp.thHour, //
+                        tmp.opHour,  //
+                        tmp.hadRunMile, //
+                        "",
+                        tmp.hadSubMinute, //
+                        finger);
+                    // var info = 'hello';
+                    if (info == "") {
+                        info = "错误:" + setCard.LastError;
+                        this.$message.warning("学员制卡失败！原因：" + info);
+                    }
+                    else {
+                        console.log(info);
+                        var userStr = sessionStorage.getItem("user");
+                        var userJ = JSON.parse(userStr);
+                        var updatePara = {
+                            'iccardNo': tmp.cardNo,
+                            'schoolCode': tmp.schNo,
+                            'studentId': parseInt(tmp.stdNo),
+                            'studentName': tmp.studentName,
+                            'idcardNo': tmp.IdCardNo,
+                            'carTypeName': tmp.carType,
+                            'fingerMB1': '03015B110000F03EC01E800E8006800680028002800280028002800280028002800280028002800200000000000000000000000000000000200B2ADE2717AB7E6818037E3D2A813E4A37851E23BFE7FE578D81BF21A06A7F64A5995F2FA76C3F6D2D84F75FB004FF24B0519F29B42BBF19B527BF63BE46BF261BD33D000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+                            'fingerMB2': '0302531A0000FFFF80038001800180018001800180018001800180018001800180018001800180018001FFFF1C6C000000000000000000000E06945E440FD89E1094ECBE4E1C053E0830E8BE66B0DCDE58BC485E6BC51D7E668F1AFF1B1F009F27A756FF3AAAC63F4EB1C6FF5139091F0EC024BF54C249FF60C5069F373CCBFD313D5FBD4B2B06BA08C6E2924AAD9C3816BA0DF909448DD323AB04571FB3C72F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+                            'thHour': tmp.thHour,
+                            'opHour': tmp.opHour,
+                            'hadRunMile': tmp.hadRunMile,
+                            'hadSubMinute': tmp.hadSubMinute,
+                            'fingerprint': tmp.noFinger,
+                            'userId': userJ.userId,
+                            'operateType': this.detailsForm.timerStudentInfo.makeIcCard ? '2' : '1'
+                        }
+                        request.basic.student.makeIcCard(updatePara).then((res) => {
+                            // console.log('==========================================');
+                            // console.log(updatePara);
+                            // console.log(res);
+                            // console.log('==========================================');
+                            if (res.success) {
+                                this.$message({ message: "学员制卡成功！数据库录入已更新", type: "success" });
+                                this.showCard = false;
+                            }
+                            else {
+                                this.editStuForm.signTime = new Date(this.editStuForm.signTime);
+                                this.editStuForm.enterTime = new Date(this.editStuForm.enterTime);
+                                this.$message.error("学员制卡录入数据库失败456！原因：" + res.message);
+                                global.printLog(this.editStuForm);
+                            }
+                            this.btnLoading = false;
+                        });
+                        // this.$message({
+                        //     type: 'success',
+                        //     message: '制卡成功！'
+                        // });
+                    }
+                }
+            });
+
+
+
+            // this.editStuForm.timerStudentInfo.makeIccard = true; 
+
+        },
+        cancelMake() {
+            this.$confirm('是否放弃当前制卡操作?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                // console.warn(this.isNewCreate);
+                this.$message({
+                    type: 'success',
+                    message: '已取消制卡'
+                });
+                this.showCard = false;
+            }).catch(() => {
+                return;
+            });
+        },
+        getData(para) {
+            request.basic.student.query.makeCardInfoById(para).then(res => {
+                let tmpObj = res.object;
+                this.ruleForm.studentName = tmpObj.studentName;
+                this.ruleForm.IdCardNo = tmpObj.cardNo;
+                this.ruleForm.schNo = tmpObj.schoolCode;
+                this.ruleForm.stdNo = global.convertToString(tmpObj.studentId);
+                this.ruleForm.fingerMB1 = tmpObj.fingerMB1;
+                this.ruleForm.fingerMB2 = tmpObj.fingerMB2;
+                this.ruleForm.thHour = tmpObj.thHour === null ? '' : tmpObj.thHour;
+                this.ruleForm.opHour = tmpObj.opHour;
+                this.ruleForm.carType = tmpObj.carTypeName;
+                this.ruleForm.hadRunMile = tmpObj.hadRunMile;
+                this.ruleForm.hadSubMinute = tmpObj.hadSubMinute;
+                this.ruleForm.noFinger = tmpObj.fingerprint;
+            });
         },
         //重置表单数据
         resetForm(formName) {
@@ -3538,34 +3618,13 @@ export default {
         this.getDepartment();
         this.getBranchSchool();
         this.queryStudents();
-        // console.warn(1008611)
-        this.readIdCard();
     },
     deactivated() {
         global.printLog("deactivated...");
     },
-    // mounted() {
-    //     setTimeout(() => {
-    //         this.getCarType();
-    //         this.queryStudents();
-    //         //this.getDepartment();
-    //         this.getBranchSchool();
-    //         this.dateList = global.getDays(new Date().Format("yyyy-MM-dd"), 100);
-    //         this.dateList[0].click = true;
-    //     }, 400);
-    //     //this.initMap();
-    // },
-    computed: {
-        formatBool(value) {
-            return value ? "是" : "否";
-        }
+    mounted() {
     }
 }
-
-$(function () {
-    // $('#loadPDF').media({width:500, height:400});
-})
-
 
 /**
 * 高拍仪
@@ -3573,9 +3632,6 @@ $(function () {
 
 //照片类型  2：现场照片   3：注册申请表   4：身份证  5：暂住证表  6：驾驶证申请表   7：体检表
 var photosType;
-
-//拍摄身份证次数，1代表已拍正面，2代表已拍反面
-var idCardPhotographCount = 0;
 
 var HIGHSHOTMETER = {
     //拍照    2：现场照片   3：注册申请表   4：身份证  5：暂住证表  6：驾驶证申请表   7：体检表
@@ -3717,52 +3773,6 @@ var HIGHSHOTMETER = {
         var photosUrl = captrue.sUpLoadImageEx2(photoPath, ip, port, functionUrl, true, false);
         //global.printLog("获取本地照片并上传到服务器成功，photosUrl：" + photosUrl);
         return photosUrl;
-    },
-    getIDCardInfo: function () {
-        var CVR_IDCard = document.getElementById("CVR_IDCard");
-        if (typeof CVR_IDCard.ReadCard === "undefined") {
-            clearInterval(card_timer);
-        }
-        else {
-            var readResult = CVR_IDCard.ReadCard();
-            if (readResult == "0") {
-                var idCardInfo = {};
-                //获取姓名
-                var name = CVR_IDCard.Name;
-                //获取性别
-                var gender = CVR_IDCard.Sex == "男" ? 1 : 2;
-                //获取证件号码
-                var cardNo = CVR_IDCard.CardNo;
-                //获取省
-                var registProvince = cardNo.substr(0, 2) + "0000";
-                //获取市
-                var registCity = cardNo.substr(0, 4) + "00";
-                //获取区/县
-                var registCounty = cardNo.substr(0, 6);
-                //获取地址
-                var address = CVR_IDCard.Address;
-                //获取出生日期
-                var birthDay = CVR_IDCard.Born.replace("年", "-").replace("月", "-").replace("日", "");
-                //获取身份证有效期止
-                var effectiveDate = CVR_IDCard.ExpiredDate.replace(/\./g, "-");
-                //获取头像base64数据
-                var photoOfBase64 = CVR_IDCard.Picture;
-                idCardInfo["name"] = name;
-                idCardInfo["gender"] = gender;
-                idCardInfo["cardNo"] = cardNo;
-                idCardInfo["registProvince"] = registProvince;
-                idCardInfo["registCity"] = registCity;
-                idCardInfo["registCounty"] = registCounty;
-                idCardInfo["address"] = address;
-                idCardInfo["birthDay"] = birthDay;
-                idCardInfo["effectiveDate"] = effectiveDate;
-                idCardInfo["photoOfBase64"] = photoOfBase64;
-                return idCardInfo;
-            }
-            else {
-                return readResult;
-            }
-        }
     }
 }
 

@@ -31,6 +31,7 @@ export const request = {
             query: {
                 list: params => { return axios.get(`${base}/sc/student/queryStudentList?schoolCode=` + params[0] + "&currentPage=" + params[1] + "&pageSize=" + params[2] + "&keyWord=" + (params[3] !== "" ? encodeURI(params[3]) : "") + "&carType=" + params[4] + (params[5] !== "" ? "&isAppointment=" + params[5] : "") + (params[6] !== "" ? "&queryType=" + params[6] : "") + "&inSchool=true" + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
                 detailById: params => { return axios.get(`${base}/sc/student/queryStudentDetail?studentId=` + params + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
+                makeCardInfoById: params => { return axios.get(`${base}/sc/student/getMakeIccardInfo?studentId=` + params + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
                 photo: params => { return axios.get(`${base}/sc/student/queryStudentPhoto?studentId=` + params + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
                 printForm: params => { return axios.get(`${base}/sc/student/queryPrintApplicationForm?studentId=` + params + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
                 classRecordList: params => { return axios.get(`${base}/sc/student/queryClassRecordList?studentId=` + params[0] + "&currentPage=" + params[1] + "&pageSize=" + params[2] + "&dt=" + new Date().Format(dtFmt)).then(res => res.data); },
@@ -49,6 +50,7 @@ export const request = {
                     examine: params => { return axios.post(`${base}/sc/student/graduationExamine`, params).then(res => res.data); },
                     record: params => { return axios.post(`${base}/sc/student/graduationRecord`, params).then(res => res.data); }
                 },
+                markCard: params => { return axios.post(`${base}/sc/student/studentMakeIccard`, params).then(res => res.data); },
             },
             audit: params => { return axios.post(`${base}/sc/student/auditStudent`, params).then(res => res.data); },
             update: params => { return axios.put(`${base}/sc/student/updateStudent`, params).then(res => res.data); },

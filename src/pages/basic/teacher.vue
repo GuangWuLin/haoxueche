@@ -141,7 +141,7 @@
                         <el-cascader :options="departmentData" :show-all-levels="false" @change="departmentChange" :change-on-select="true" v-model="selectedUnitOptions">
                         </el-cascader>
                     </el-form-item>
-                    <el-form-item label="是否发卡" class="normal" prop="timerTeacherInfo.useIccard">
+                    <el-form-item label="是否发卡" class="normal">
                         <el-select v-model="addCoachForm.timerTeacherInfo.useIccard" placeholder="请选择是否发卡">
                             <el-option label="否" value="false"></el-option>
                             <el-option label="是" value="true"></el-option>
@@ -182,9 +182,10 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="thisShow=addCoachFormVisible = false" size="large">取消</el-button>
-                    <el-button type="primary" size="large" @click.native="createNew('teacher','add')">保存</el-button>
+                    <el-button type="primary" size="large" @click.native="createNew('teacher','add')" :loading="btnLoading">保存</el-button>
                 </div>
             </el-dialog>
+            <!--修改教练员-->
             <el-dialog title="修改" v-model="editCoachFormVisible" :close-on-click-modal="false" size="full" @close="dialogClose">
                 <el-form v-if="editCoachFormVisible" :model="editCoachForm" :rules="coachFormRules" ref="editCoachForm" :inline="true" class="demo-form-inline" label-width="85px">
                     <p class="group-title">个人信息</p>
@@ -274,12 +275,10 @@
                         <el-cascader :options="departmentData" :show-all-levels="false" @change="departmentChange" :change-on-select="true" v-model="selectedUnitOptions">
                         </el-cascader>
                     </el-form-item>
-                    <el-form-item label="是否发卡"  class="normal" prop="timerTeacherInfo.useIccard">
-                        <el-select :disabled="editCoachForm.timerTeacherInfo.useIccard" v-model="editCoachForm.timerTeacherInfo.useIccard" placeholder="请选择是否发卡">
+                    <el-form-item label="是否发卡" class="normal" prop="timerTeacherInfo.useIccard">
+                        <el-select :disabled="addCoachForm.timerTeacherInfo.useIccard=='true'" v-model="editCoachForm.timerTeacherInfo.useIccard" placeholder="请选择是否发卡">
                             <el-option label="否" value="false"></el-option>
                             <el-option label="是" value="true"></el-option>
-                            <!--<el-option :label="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?'是':'否'" :value="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?true:false"></el-option>
-                            <el-option v-if="!editCoachForm.timerTeacherInfo.useIccard" :label="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?'否':'是'" :value="(editCoachForm.timerTeacherInfo.useIccard==='true'||editCoachForm.timerTeacherInfo.useIccard)?false:true"></el-option>-->
                         </el-select>
                     </el-form-item>
                     <el-form-item label="备注" class="addr" prop="comments">
@@ -317,7 +316,7 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="thisShow=editCoachFormVisible = false" size="large">取消</el-button>
-                    <el-button type="primary" size="large" @click.native="createNew('teacher','edit')">保存</el-button>
+                    <el-button type="primary" size="large" @click.native="createNew('teacher','edit')" :loading="btnLoading">保存</el-button>
                 </div>
             </el-dialog>
             <el-dialog title="拍照" v-model="photographFormVisible" :close-on-click-modal="false" class="photograph" size="small" @close="dialogClose">
@@ -384,19 +383,19 @@
                     </el-form>
                 </el-row>
                 <!--<el-row>
-                                        <div class="wall-container hide">
-                                            <div class="header-two">
-                                                <swiper :options="swiperOption" ref="swiper">
-                                                    <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
-                                                        <p>{{item.date}}</p>
-                                                        <p>{{item.week}}</p>
-                                                    </swiper-slide>
-                                                    <div class="swiper-button-prev" slot="button-prev"></div>
-                                                    <div class="swiper-button-next" slot="button-next"></div>
-                                                </swiper>
-                                            </div>
-                                        </div>
-                                    </el-row>-->
+                                                    <div class="wall-container hide">
+                                                        <div class="header-two">
+                                                            <swiper :options="swiperOption" ref="swiper">
+                                                                <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
+                                                                    <p>{{item.date}}</p>
+                                                                    <p>{{item.week}}</p>
+                                                                </swiper-slide>
+                                                                <div class="swiper-button-prev" slot="button-prev"></div>
+                                                                <div class="swiper-button-next" slot="button-next"></div>
+                                                            </swiper>
+                                                        </div>
+                                                    </div>
+                                                </el-row>-->
                 <el-row v-loading="filters.classes.loading" class="mt20">
                     <div v-for="list in classes.list" class="classes-review">
                         <div class="coach-photo">
@@ -438,7 +437,7 @@
                             </el-col>
                             <el-col :span="6">
                                 <p class="t-right">
-                                    <el-button type="primary" size="large" @click="">&nbsp;换卡&nbsp;</el-button>
+                                    <el-button type="primary" v-show="detailTeacher.timerTeacherInfo.useIccard=='true'" size="large" @click="()=>{showCard=true;getData(editCoachForm.teacherId)}">&nbsp;{{detailTeacher.timerTeacherInfo.makeIccard?'换卡':'绑卡'}}&nbsp;</el-button>
                                     <el-button type="primary" size="large" @click="handleOpenEdit(detailTeacher,'teacher')">&nbsp;修改&nbsp;</el-button>
                                 </p>
                             </el-col>
@@ -533,76 +532,59 @@
                     <el-button @click.native="detailsCoachFormVisible = false" size="large">取消</el-button>
                 </div>
             </el-dialog>
-            <el-dialog title="学员制卡" v-model="showCard">
-                <!--制卡-->
-                    <object id="myobj"  border="1" height=30 width=200
-                        align="center" classid="clsid:93201C87-E8B2-4B20-A61A-6D4DFBD2D140" />
-                    </object>
-                <el-form :model="ruleForm" :inline="true" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                    
-                    <el-form-item label="学员姓名" prop="studentName">
-                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.studentName" style="width:400px;"></el-input>
+            <!--教练员制卡弹窗-->
+            <el-dialog title="教练员制卡" v-model="showCard" :show-close="false" :close-on-click-modal="false">
+                <el-form ref="makeCard" :rules="ruleForms"  :model="ruleForm" :inline="true" label-width="100px">
+                    <el-form-item label="学校编号" prop="SchoolNo">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.SchoolNo" style="width:400px;"></el-input>
                     </el-form-item>
-                    <el-form-item label="身份证号码" prop="IdCardNo">
-                        <el-input :disabled="true" v-model="ruleForm.IdCardNo" placeholder="输入证件号" style="width:400px;"></el-input>
+                    <el-form-item label="教练编号" prop="CoachNo">
+                        <el-input :disabled="true" v-model="ruleForm.CoachNo" style="width:400px;"></el-input>
                     </el-form-item>
-        
-                    <el-form-item label="驾校编号" prop="schNo">
-                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.schNo" style="width:400px;"></el-input>
+                    <el-form-item label="教练姓名" prop="CoachName">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.CoachName" style="width:400px;"></el-input>
                     </el-form-item>
-        
-                    <el-form-item label="学员ID" prop="stdNo">
-                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.stdNo" style="width:400px;"></el-input>
+                    <el-form-item label="教练密码" prop="CoachPwd">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.CoachPwd" style="width:400px;"></el-input>
                     </el-form-item>
-
-                    
-                    <el-form-item label="卡号" prop="cardNo">
-                        <el-input auto-complete="off" v-model="ruleForm.cardNo" style="width:400px;"></el-input>
+                    <el-form-item label="第一指纹" prop="FingerMB1">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.FingerMB1" style="width:400px;"></el-input>
                     </el-form-item>
-
-                    <el-form-item label="已通过科目" prop="thHour">
-                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.thHour" style="width:400px;"></el-input>
+                    <el-form-item label="第二指纹" prop="FingerMB2">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.FingerMB2" style="width:400px;"></el-input>
                     </el-form-item>
-
-                    <el-form-item label="三阶段学时要求" prop="opHour">
-                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.opHour" style="width:400px;"></el-input>
+                    <el-form-item label="身份证号码" prop="SfzNo">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.SfzNo" style="width:400px;"></el-input>
                     </el-form-item>
-
-                    <el-form-item label="已行驶的里程" prop="hadRunMile">
-                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.hadRunMile" style="width:400px;"></el-input>
+                    <el-form-item label="学时类型" prop="TimeType">
+                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.TimeType" style="width:400px;"></el-input>
                     </el-form-item>
-
-                    <el-form-item label="已学学时" prop="hadSubMinute">
-                        <el-input :disabled="true" auto-complete="off" v-model="ruleForm.hadSubMinute" style="width:400px;"></el-input>
+                    <!--<el-form-item label="是否有效卡" prop="IsValid">
+                        <el-input auto-complete="off" v-model="ruleForm.IsValid" style="width:400px;"></el-input>
+                    </el-form-item>-->
+                    <el-form-item label="教练证有效范围" prop="TfcPaperTime">
+                        <el-input auto-complete="off" v-model="ruleForm.TfcPaperTime" style="width:400px;"></el-input>
                     </el-form-item>
-
-                    <el-form-item label="车型" class="normal" prop="carType">
-                        <el-select  :disabled="ruleForm.carType!=''" v-model="ruleForm.carType" placeholder="请选择培训车型">
-                            <el-option v-for="item in carTypeOptions" :label="item.label" :value="item.value"></el-option>
+                     <el-form-item label="卡号" prop="cardNo">
+                        <el-input  auto-complete="off" v-model="ruleForm.cardNo" style="width:200px;"></el-input>
+                    </el-form-item>
+                    <el-form-item label="准教车型" class="normal">
+                        <el-select :disabled="ruleForm.CoachDryType!=''" v-model="ruleForm.CoachDryType" placeholder="请选择培训车型">
+                            <el-option v-for="item in vehiclesTypeOption" :label="item.label" :value="item.value"></el-option>
                         </el-select>
                     </el-form-item>
-        
-                    <el-form-item label="第一指纹" prop="fingerMB1">
-                        <el-switch on-text="" :disabled="true" off-text="" v-model="ruleForm.fingerMB1" style="width:200px;"></el-switch>
-                        
-                    </el-form-item>
-        
-                    <el-form-item label="第二指纹" prop="fingerMB2">
-                        <el-switch :disabled="true" on-text="" off-text="" v-model="ruleForm.fingerMB2" style="width:200px;"></el-switch>
-                    </el-form-item>
-
+                    
                     <!--特殊卡指纹待定-->
                     <el-form-item label="特殊卡指纹" prop="noFinger">
-                        <el-switch on-text="" off-text="" v-model="ruleForm.noFinger"></el-switch>
+                        <el-switch :disabled="true" on-text="" off-text="" v-model="ruleForm.noFinger"></el-switch>
                     </el-form-item>
-        
                     <el-form-item style="float:right;margin-right:44px;">
-                    <el-button type="primary" @click="XykSetInfo('ruleForm')">立即创建</el-button>
-                    <el-button @click="()=>showCard=false">取消</el-button>
-                </el-form-item>
+                        <el-button type="primary" @click="JlkSetInfo('ruleForm')" :loading="btnLoading1">立即创建</el-button>
+                        <el-button @click="cancelMake">取消</el-button>
+                    </el-form-item>
                 </el-form>
+                <object id="myobj" classid="clsid:93201C87-E8B2-4B20-A61A-6D4DFBD2D140" class="hide" /></object>
             </el-dialog>
-            
         </el-row>
         <el-row v-if="radioHeaderSel==='安全员'">
             <!--工具条-->
@@ -721,7 +703,7 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="addSOFormVisible = false" size="large">取消</el-button>
-                    <el-button type="primary" size="large" @click.native="createNew('so','add')">保存</el-button>
+                    <el-button type="primary" size="large" @click.native="createNew('so','add')" :loading="btnLoading">保存</el-button>
                 </div>
             </el-dialog>
             <el-dialog title="安全员详情" v-model="detailsSOFormVisible" :close-on-click-modal="false" size="full">
@@ -764,7 +746,7 @@
                                 <span>在职状态: {{formatData(detailsSO.workState,"workState")}}</span>
                             </el-col>
                             <el-col :span="6">
-                                <span>驾驶证初领日期: {{detailsSO.drivingLicenceTime===""?"":new Date().Format("yyyy-MM-dd")}}</span>
+                                <span>驾驶证初领日期: {{detailsSO.drivingLicenceTime===""?"":new Date(detailsSO.drivingLicenceTime).Format("yyyy-MM-dd")}}</span>
                             </el-col>
                             <el-col :span="7">
                                 <span>职业资格证号:{{detailsSO.vocationalNo}}</span>
@@ -893,7 +875,7 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="thisShow=editSOFormVisible = false" size="large">取消</el-button>
-                    <el-button type="primary" size="large" @click.native="createNew('so','edit')">保存</el-button>
+                    <el-button type="primary" size="large" @click.native="createNew('so','edit')" :loading="btnLoading">保存</el-button>
                 </div>
             </el-dialog>
         </el-row>
@@ -1014,7 +996,7 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="addAssessorFormVisible = false" size="large">取消</el-button>
-                    <el-button type="primary" size="large" @click.native="createNew('assessor','add')">保存</el-button>
+                    <el-button type="primary" size="large" @click.native="createNew('assessor','add')" :loading="btnLoading">保存</el-button>
                 </div>
             </el-dialog>
             <el-dialog title="考核员详情" v-model="detailsAssessorFormVisible" :close-on-click-modal="false" size="full">
@@ -1186,7 +1168,7 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="thisShow=editAssessorFormVisible = false" size="large">取消</el-button>
-                    <el-button type="primary" size="large" @click.native="createNew('assessor','edit')">保存</el-button>
+                    <el-button type="primary" size="large" @click.native="createNew('assessor','edit')" :loading="btnLoading">保存</el-button>
                 </div>
             </el-dialog>
         </el-row>
@@ -1202,23 +1184,28 @@ import { global } from "../../assets/javascript/global";
 export default {
     data() {
         return {
-            
+            // datas:{},
             ruleForm: {
-                studentName: '青青子衿',
-                IdCardNo: '123456',
-                schNo:'90028',
-                cardNo: '2938',
-                stdNo: '9527',
-                noFinger: false,
-                fingerMB1:'',
-                fingerMB2:'',
-                thHour:'km1;km2',
-                opHour:'0,12,0,0;24,2,0,50;20,16,4,300',
-                hadRunMile:'0;50;0;0',
-                hadSubMinute:'15,15,15;15,15,15;0,0,0;0,0,0',
-                carType:'C1'
+                cardNo:"",
+                SchoolNo: '',
+                CoachNo: '',
+                CoachName: '',
+                CoachPwd: '',
+                FingerMB1: '03015B110000F03EC01E800E8006800680028002800280028002800280028002800280028002800200000000000000000000000000000000200B2ADE2717AB7E6818037E3D2A813E4A37851E23BFE7FE578D81BF21A06A7F64A5995F2FA76C3F6D2D84F75FB004FF24B0519F29B42BBF19B527BF63BE46BF261BD33D000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+                FingerMB2: '0302531A0000FFFF80038001800180018001800180018001800180018001800180018001800180018001FFFF1C6C000000000000000000000E06945E440FD89E1094ECBE4E1C053E0830E8BE66B0DCDE58BC485E6BC51D7E668F1AFF1B1F009F27A756FF3AAAC63F4EB1C6FF5139091F0EC024BF54C249FF60C5069F373CCBFD313D5FBD4B2B06BA08C6E2924AAD9C3816BA0DF909448DD323AB04571FB3C72F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+                NoFinger: false,
+                CoachDryType: '',
+                SfzNo: '',
+                TimeType: 'sc,th,sim,kh',
+                IsValid: 'T',
+                TfcPaperTime: '2011-01-01,2017-07-07'
             },
-            showCard: true,
+            ruleForms:{
+                cardNo: [
+                    { required: true, message: "请选择证件类型并填写证件号码", trigger: "blur" }
+                ],
+            },
+            showCard: false,
             thisShow: false,
             pageLoading: false,
             emptyVisible: false,
@@ -1384,9 +1371,9 @@ export default {
                 deptId: [
                     { required: true, message: "请选择所属单位", trigger: "change" }
                 ],
-                "timerTeacherInfo.useIccard": [
-                    { required: true, message: "请选择是否为发卡教练", trigger: "change" }
-                ]
+                cardNo: [
+                    { required: true, message: "请选择证件类型并填写证件号码", trigger: "blur" }
+                ],
             },
             detailsCoachFormVisible: false,
             editCoachFormVisible: false,
@@ -1410,6 +1397,7 @@ export default {
                 vocationalLevel: "",
                 drivingCarType: "",
                 teachCarType: "",
+                teacherId:'',
                 inputDate: "",
                 departureDate: "",
                 appointmentTeacher: false,
@@ -1569,7 +1557,7 @@ export default {
                 phone: "",
                 province: "",
                 city: "",
-                county: "510104",
+                county: "",
                 qq: "",
                 address: "",
                 photosUrl: "",
@@ -1693,92 +1681,12 @@ export default {
                 disabledDate(time) {
                     return time.getTime() < Date.now() - 8.64e7;
                 }
-            }
+            },
+            btnLoading: false,
+            btnLoading1:false
         }
     },
     methods: {
-        XykReadInfo() {
-            // alert(10086);
-            // var beg = new Date();
-            var addsCard = document.getElementById("myobj");
-            // console.log(addsCard);
-
-            addsCard.SetReaderType('AYUSB');
-            // // var results = addsCard.ReadCard();
-            var revalue = addsCard.XykReadInfo();
-            if (revalue == "") revalue = "错误:" + addsCard.LastError;
-            this.input2 = revalue;
-            console.log(revalue);
-
-            // var end = new Date();
-            // alert(end.getSeconds() * 1000 + end.getMilliseconds() - (beg.getSeconds() * 1000 + beg.getMilliseconds()));
-        },
-        XykSetInfo() {
-            console.log(this.ruleForm)
-            // var obj = 
-            var setCard = document.getElementById('myobj');
-            setCard.SetReaderType('AYUSB');
-            let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
-            var info = setCard.XykSetInfo(
-                this.ruleForm.schNo, 
-                this.ruleForm.stdNo, 
-                this.ruleForm.studentName, 
-                this.ruleForm.carType, 
-                this.ruleForm.IdCardNo, 
-                this.ruleForm.fingerMB1, 
-                this.ruleForm.fingerMB2, 
-                this.ruleForm.thHour, 
-                this.ruleForm.opHour, 
-                this.ruleForm.hadRunMile, 
-                "",
-                this.ruleForm.hadSubMinute, 
-                finger);
-            // console.log(info);
-            if (info == "") info = "错误:" + setCard.LastError;
-            this.input2 = info;
-        },
-        XykSetInfoBeg() {
-            var setCard = document.getElementById('myobj');
-            setCard.SetReaderType('AYUSB');
-            let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
-            var re = setCard.XykSetInfoBeg(
-                this.ruleForm.schNo, 
-                this.ruleForm.stdNo, 
-                this.ruleForm.studentName, 
-                this.ruleForm.carType,
-                 this.ruleForm.IdCardNo, 
-                 this.ruleForm.fingerMB1, 
-                 this.ruleForm.fingerMB2, 
-                 this.ruleForm.thHour, 
-                 this.ruleForm.opHour, 
-                 this.ruleForm.hadRunMile, 
-                 "",
-                 this.ruleForm.hadSubMinute, 
-                 finger);
-            if (re == "") re = "设置中...";
-            this.input2 = re;
-        },
-
-        ieXykSetInfoEnd(Re) {
-            var setCard = document.getElementById('myobj');
-            if (Re == "") Re = "错误:" + setCard.LastError;
-            this.input2 = Re;
-        },
-        XykFingerCheck() {
-            var setCard = document.getElementById('myobj');
-            var re = setCard.XykFingerCheck();
-            if (re == "") re = "错误:" + setCard.LastError;
-            this.input2 = re;
-        },
-        XykFingerCheckBeg() {
-             var setCard = document.getElementById('myobj');
-            var re = setCard.XykFingerCheckBeg();
-            if (re == "") re = "设置中..."; this.input2 = re;
-        },
-        ieXykFingerCheckEnd(Re) {
-             var setCard = document.getElementById('myobj');
-            if (Re == "") Re = "错误:" + setCard.LastError; this.input2 = Re;
-        },
         //表格数据格式化
         formatTableData(row, column) {
             if (column.property === "appointmentTeacher") {
@@ -1868,64 +1776,77 @@ export default {
         },
         //新增/编辑教练员/安全员/考核员
         createNew(target, flag) {
-            // console.log(this)
             if (target === "teacher") {
                 if (flag === "add") {
                     this.$refs["addCoachForm"].validate((valid) => {
                         if (valid) {
-                            if(this.addCoachForm.timerTeacherInfo.useIccard == 'false'){
-                                // console.log()
-                                if (this.image !== "") {
-                                    let phonePara = {
-                                        teacherName: this.addCoachForm.teacherName,
-                                        phone: this.addCoachForm.phone,
-                                        gender: this.addCoachForm.gender,
-                                        photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
+                            if (!this.addCoachForm.appointmentTeacher) {
+                                this.addCoachForm.appointmentTeacherInfo.modelId = "";
+                            }
+                            if (this.addCoachForm.appointmentTeacher && this.addCoachForm.appointmentTeacherInfo.modelId === "") {
+                                this.$message.warning({ message: "教练开启预约培训必须选择一个模式", type: "success" });
+                                return;
+                            }
+                            this.btnLoading = true;
+                            if (this.image !== "") {
+                                let phonePara = {
+                                    teacherName: this.addCoachForm.teacherName,
+                                    phone: this.addCoachForm.phone,
+                                    gender: this.addCoachForm.gender,
+                                    photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
+                                }
+                                let objs = Object.assign({}, phonePara);
+                                request.basic.coach.create.photo.coach(objs).then((res) => {
+                                    if (res.success) {
+                                        this.addCoachForm.photosUrl = res.object.photosUrl;
+                                        this.addCoachForm.timerTeacherInfo.photosUrl = res.object.photosUrl;
+                                        this.addCoachForm.timerTeacherInfo.faceId = res.object.faceId;
+                                        this.addCoachForm.timerTeacherInfo.faceppId = res.object.faceppId;
+                                        this.addCoachForm.timerTeacherInfo.photosId = res.object.photosId;
+                                        this.addCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
                                     }
-                                    let objs = Object.assign({}, phonePara);
-                                    request.basic.coach.create.photo.coach(objs).then((res) => {
-                                        if (res.success) {
-                                            this.addCoachForm.timerTeacherInfo.photosUrl = res.object.photosUrl;
-                                            this.addCoachForm.timerTeacherInfo.faceId = res.object.faceId;
-                                            this.addCoachForm.timerTeacherInfo.faceppId = res.object.faceppId;
-                                            this.addCoachForm.timerTeacherInfo.photosId = res.object.photosId;
-                                            this.addCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
-                                        }
-                                        onCreate(this);
-                                    });
-                                }
-                                else {
                                     onCreate(this);
-                                }
-                                
-                            }else{
-                                // this.showCard = true;
+                                });
+                            }
+                            else {
+                                // console.error(this.detailTeacher.timerTeacherInfo);
                                 onCreate(this);
                             }
                             function onCreate(that) {
-                                    console.info(that);
-                                    that.addCoachForm.appointmentTeacherInfo.carId = that.bindCar;
-                                    that.addCoachForm.appointmentTeacherInfo.bindCar = that.$refs.bindCar.selectedLabel;
-                                    that.addCoachForm.drivingLicenceTime = that.formatData(that.addCoachForm.drivingLicenceTime, "date", "yyyy-MM-dd");
-                                    that.addCoachForm.inputDate = that.formatData(that.addCoachForm.inputDate, "date", "yyyy-MM-dd");
-                                    that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
-                                    let para = Object.assign({}, that.addCoachForm);
-                                    global.printLog(JSON.stringify(para));
-                                    request.basic.coach.create.coach(para).then((res) => {
-                                        if (res.success) {
-                                            that.getTeachers();
-                                            that.resetForm("addCoachForm");
-                                            that.addCoachFormVisible = false;
-                                            that.$message({ message: "教练员添加成功！", type: "success" });
+                                that.addCoachForm.appointmentTeacherInfo.carId = that.bindCar;
+                                that.addCoachForm.appointmentTeacherInfo.bindCar = that.$refs.bindCar.selectedLabel;
+                                that.addCoachForm.drivingLicenceTime = that.formatData(that.addCoachForm.drivingLicenceTime, "date", "yyyy-MM-dd");
+                                that.addCoachForm.inputDate = that.formatData(that.addCoachForm.inputDate, "date", "yyyy-MM-dd");
+                                that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
+                                let para = Object.assign({}, that.addCoachForm);
+                                global.printLog(JSON.stringify(para));
+                                request.basic.coach.create.coach(para).then((res) => {
+                                    that.btnLoading = false;
+                                    // console.log('Post to create new coach')
+                                    // console.error(res.object)
+                                
+                                    if (res.success) {
+                                        if (that.addCoachForm.timerTeacherInfo.useIccard == 'true') {
+                                            // console.warn(10061111)
+                                            that.showCard = true;
+                                            console.error(res.object);
+                                            that.getData(res.object);
+                                            // that.btnLoading = false;
                                         }
-                                        else {
-                                            that.addCoachForm.drivingLicenceTime = new Date(that.addCoachForm.drivingLicenceTime);
-                                            that.addCoachForm.inputDate = new Date(that.addCoachForm.inputDate);
-                                            that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
-                                            that.$message.error("教练员添加失败！原因：" + res.message);
-                                        }
-                                    });
-                                }
+                                        // alert('Tian加成高')
+                                        that.getTeachers();
+                                        that.resetForm("addCoachForm");
+                                        that.addCoachFormVisible = false;
+                                        that.$message({ message: "教练员添加成功！", type: "success" });
+                                    }
+                                    else {
+                                        that.addCoachForm.drivingLicenceTime = new Date(that.addCoachForm.drivingLicenceTime);
+                                        that.addCoachForm.inputDate = new Date(that.addCoachForm.inputDate);
+                                        that.addCoachForm.departureDate = that.formatData(that.addCoachForm.departureDate, "date", "yyyy-MM-dd");
+                                        that.$message.error("教练员添加失败123！原因：" + res.message);
+                                    }
+                                });
+                            }
                         }
                     });
                 }
@@ -1944,18 +1865,19 @@ export default {
                                     photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
                                 }
                                 let objs = Object.assign({}, phonePara);
+                                this.btnLoading = true;
                                 request.basic.coach.create.photo.coach(objs).then((res) => {
                                     if (res.success) {
+                                        this.editCoachForm.photosUrl = res.object.photosUrl;
                                         this.editCoachForm.timerTeacherInfo.photosUrl = res.object.photosUrl;
                                         this.editCoachForm.timerTeacherInfo.faceId = res.object.faceId;
                                         this.editCoachForm.timerTeacherInfo.faceppId = res.object.faceppId;
                                         this.editCoachForm.timerTeacherInfo.photosId = res.object.photosId;
                                         this.editCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
-                                        // this.editCoachForm.timerTeacherInfo.proPhotosId = res.object.proPhotosId;
-                                       
                                         onUpdate(this);
                                     }
                                     else {
+                                        this.btnLoading = false;
                                         this.$message.error("教练员修改失败！原因：" + res.message);
                                     }
                                 });
@@ -1988,6 +1910,7 @@ export default {
                                     "appointmentTeacher": that.editCoachForm.appointmentTeacher,
                                     "comments": that.editCoachForm.comments,
                                     "deptId": that.editCoachForm.deptId,
+                                    "photosUrl": that.editCoachForm.photosUrl,
                                     "appointmentTeacherInfo": {
                                         "stage": that.editCoachForm.appointmentTeacherInfo.stage,
                                         "isClass": that.editCoachForm.appointmentTeacherInfo.isClass,
@@ -2003,11 +1926,13 @@ export default {
                                         "faceppId": that.editCoachForm.timerTeacherInfo.faceppId,
                                         "photosId": that.editCoachForm.timerTeacherInfo.photosId,
                                         "proPhotosId": that.editCoachForm.timerTeacherInfo.proPhotosId,
-                                        "useIccard":that.editCoachForm.timerTeacherInfo.useIccard
+                                        "useIccard": that.editCoachForm.timerTeacherInfo.useIccard
                                     }
                                 }
                                 let para = Object.assign({}, updatePara);
+                                global.printLog(para);
                                 request.basic.coach.update(para).then((res) => {
+                                    that.btnLoading = false;
                                     if (res.success) {
                                         that.getTeachers();
                                         that.editCoachFormVisible = false;
@@ -2026,6 +1951,7 @@ export default {
                 if (flag === "add") {
                     this.$refs["addSOForm"].validate((valid) => {
                         if (valid) {
+                            this.btnLoading = true;
                             if (this.image !== "") {
                                 let phonePara = {
                                     photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
@@ -2040,6 +1966,7 @@ export default {
                                 });
                             }
                             else {
+                                this.btnLoading = true;
                                 onCreateSO(this);
                             }
                             function onCreateSO(that) {
@@ -2050,6 +1977,7 @@ export default {
                                 global.printLog(JSON.stringify(para));
                                 request.basic.securityGuard.create.securityGuard(para).then((res) => {
                                     global.printLog(res);
+                                    that.btnLoading = false;
                                     if (res.success) {
                                         that.getSecurityGuard();
                                         //this.resetForm("addSOForm");
@@ -2075,6 +2003,7 @@ export default {
                                 this.$message.warning({ message: "请选择安全员头像！", type: "success" });
                             }
                             else if (!objExp.test(this.image)) {
+                                this.btnLoading = true;
                                 let phonePara = {
                                     photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
                                 }
@@ -2088,11 +2017,13 @@ export default {
                                         onUpdate(this);
                                     }
                                     else {
+                                        this.btnLoading = false;
                                         this.$message.error("安全员修改失败！原因：" + res.message);
                                     }
                                 });
                             }
                             else {
+                                this.btnLoading = true;
                                 onUpdate(this);
                             }
                             function onUpdate(that) {
@@ -2123,7 +2054,9 @@ export default {
                                     comments: that.editSOForm.comments
                                 }
                                 let para = Object.assign({}, updatePara);
+                                global.printLog(para);
                                 request.basic.securityGuard.update(para).then((res) => {
+                                    that.btnLoading = false;
                                     if (res.success) {
                                         that.getSecurityGuard();
                                         that.editSOFormVisible = false;
@@ -2143,6 +2076,7 @@ export default {
                     this.$refs["addAssessorForm"].validate((valid) => {
                         if (valid) {
                             if (this.image !== "") {
+                                this.btnLoading = true;
                                 let phonePara = {
                                     photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
                                 }
@@ -2156,6 +2090,7 @@ export default {
                                 });
                             }
                             else {
+                                this.btnLoading = true;
                                 onCreateAssessor(this);
                             }
                             function onCreateAssessor(that) {
@@ -2166,6 +2101,7 @@ export default {
                                 global.printLog(JSON.stringify(para));
                                 request.basic.examiner.create.examiner(para).then((res) => {
                                     global.printLog(res);
+                                    that.btnLoading = false;
                                     if (res.success) {
                                         that.getExaminer();
                                         //this.resetForm("addAssessorForm");
@@ -2191,6 +2127,7 @@ export default {
                                 this.$message.warning({ message: "请选择考核员头像！", type: "success" });
                             }
                             else if (!objExp.test(this.image)) {
+                                this.btnLoading = true;
                                 let phonePara = {
                                     photoOfBase64: this.image.substring(this.image.indexOf(",") + 1)
                                 }
@@ -2203,11 +2140,13 @@ export default {
                                         onUpdate(this);
                                     }
                                     else {
+                                        this.btnLoading = false;
                                         this.$message.error("考核员修改失败！原因：" + res.message);
                                     }
                                 });
                             }
                             else {
+                                this.btnLoading = true;
                                 onUpdate(this);
                             }
                             function onUpdate(that) {
@@ -2239,6 +2178,7 @@ export default {
                                 }
                                 let para = Object.assign({}, updatePara);
                                 request.basic.examiner.update(para).then((res) => {
+                                    that.btnLoading = false;
                                     if (res.success) {
                                         that.getExaminer();
                                         that.editAssessorFormVisible = false;
@@ -2308,7 +2248,7 @@ export default {
                 if (res.success === true) {
                     let data = res.object;
                     global.printLog(data);
-                    // console.info(data);
+                    // global.printlog(data);
                     // this.datas.province = data.province;
                     // this.datas.provinceName = data.provinceName;
                     // this.datas.city = data.city;
@@ -2319,8 +2259,8 @@ export default {
                     this.detailTeacher.regionName = global.convertToString(data.provinceName) + "" + global.convertToString(data.cityName) + "" + global.convertToString(data.countyName);
                     this.detailTeacher.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
                     this.editCoachForm = data;
-                    this.editCoachForm.timerTeacherInfo.useIccard = data.timerTeacherInfo.useIccard.toString();
                     this.selectedUnitOptions = [];
+                    this.editCoachForm.timerTeacherInfo.useIccard = global.convertToString(data.timerTeacherInfo.useIccard);
                     this.editCoachForm.inputDate = data.inputDate === null ? "" : new Date(data.inputDate);
                     this.editCoachForm.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
                     this.editCoachForm.drivingLicenceTime = data.drivingLicenceTime === null ? "" : new Date(data.drivingLicenceTime);
@@ -2339,6 +2279,7 @@ export default {
                     this.editCoachForm.deptId = global.convertToString(units[units.length - 1].deptId);
                     this.bindCar = global.convertToString(data.appointmentTeacherInfo.carId);
                     this.image = data.timerTeacherInfo.photosUrl;
+                    this.editCoachForm.photosUrl = data.timerTeacherInfo.photosUrl;
                 }
                 this.detailsCoachFormVisible = true;
             });
@@ -2365,8 +2306,11 @@ export default {
                     let data = res.object;
                     global.printLog(JSON.stringify(data));
                     this.detailsSO = data;
+                    global.printLog(data.drivingLicenceTime);
                     this.detailsSO.regionName = global.convertToString(data.provinceName) + "" + global.convertToString(data.cityName) + "" + global.convertToString(data.countyName);
                     this.detailsSO.departureDate = (data.departureDate === "" || data.departureDate === null ? "" : data.departureDate);
+                    //this.detailsSO.drivingLicenceTime = data.drivingLicenceTime === "" || data.drivingLicenceTime === null ? "" : new Date(data.drivingLicenceTime);
+
                     this.editSOForm = data;
                     this.image = data.photosUrl;
                     this.editSOForm.gender = global.convertToString(data.gender);
@@ -2571,7 +2515,7 @@ export default {
                         faceId: 0,
                         faceppId: "",
                         photosId: 0,
-                        useIccard:'false',
+                        useIccard: 'false',
                         proPhotosId: 0
                     }
                 };
@@ -2614,7 +2558,7 @@ export default {
                     phone: "",
                     province: "",
                     city: "",
-                    county: "510104",
+                    county: "",
                     qq: "",
                     address: "",
                     photosUrl: "",
@@ -2928,6 +2872,7 @@ export default {
             let that = this;
             if (target === "teacher") {
                 that.detailsCoachFormVisible = false;
+                this.addCoachForm.timerTeacherInfo.useIccard = global.convertToString(this.detailTeacher.timerTeacherInfo.useIccard);
                 setTimeout(function () {
                     that.editCoachFormVisible = true;
                 }, 200);
@@ -3120,7 +3065,7 @@ export default {
             global.downloadExl(jsono, filename, "");
         },
         listenData(result, tag) {
-            console.warn(result)
+            global.printLog(result);
             if (this.addCoachFormVisible) {
                 this.addCoachForm.province = result[0].province.code;
                 this.addCoachForm.city = result[0].city.code;
@@ -3181,7 +3126,120 @@ export default {
                 }
                 catch (e) { }
             }
-        }
+        },
+        JlkSetInfo() {
+            this.$refs["makeCard"].validate((valid) => {
+                if (valid) {    
+                    // alert(1) 
+                    this.btnLoading1 = true;
+                    var setCard = document.getElementById('myobj');
+                    setCard.SetReaderType('AYUSB');
+                    let tmp = this.ruleForm;
+                    // console.log(tmp)
+                    let schNo1 = global.convertToString(tmp.SchoolNo);
+                    let coachNo = global.convertToString(tmp.CoachNo);
+                    let sth;
+                    if (schNo1.length === 9) {
+                        sth = schNo1.split('');
+                        sth.splice(4, 1);
+                        sth = sth.join('');
+                    }
+                    // console.log(Object.prototype.toString.call(coachNo))
+                    switch (coachNo.length) {
+                        case 4:
+                            coachNo = '0000' + coachNo;
+                            break;
+                        case 5:
+                            coachNo = '000' + coachNo;
+                            break;
+                        case 6:
+                            coachNo = '00' + coachNo;
+                            break;
+                        case 7:
+                            coachNo = '0' + coachNo;
+                            break;
+                    }
+                    let finger = this.ruleForm.noFinger ? 'you' : 'NoFinger';
+                    var info = setCard.JlkSetInfo_MF1(
+                        sth, //
+                        coachNo,
+                        tmp.CoachName, //
+                        tmp.CoachPwd, //
+                        tmp.FingerMB1,//tmp.fingerMB1,
+                        tmp.FingerMB2, // tmp.fingerMB2
+                        finger,
+                        tmp.CoachDryType, //
+                        tmp.SfzNo,  // 没有数据。
+                        tmp.TimeType, //
+                        tmp.IsValid,
+                        tmp.TfcPaperTime);
+                    if (info == "") {
+                        info = "错误:" + setCard.LastError;
+                        this.$message.warning("教练卡制卡失败！原因：" + info);
+                    }
+                    else {
+                        var userStr = sessionStorage.getItem("user");
+                        var userJ = JSON.parse(userStr);
+                        this.$message({ message: "教练员制卡成功！", type: "success" });
+                        var updatePara = {
+                            'iccardNo': tmp.cardNo,
+                            'teacherId': tmp.CoachNo,
+                            'teacherName': tmp.CoachName,
+                            'schoolCode': tmp.SchoolNo,
+                            'teacherPwd': tmp.CoachPwd,
+                            'fingerMB1': tmp.FingerMB1,
+                            'fingerMB2': tmp.FingerMB2,
+                            'fingerprint': tmp.NoFinger,
+                            'teachCarTypeName': tmp.CoachDryType,
+                            'userId': userJ.userId, // global.convertToString(userJ.userId)
+                            'operateType':this.detailTeacher.timerTeacherInfo.makeIcCard?'2':'1'
+                        }
+                        request.basic.coach.makeIcCard(updatePara).then((res) => {
+                            if (res.success) {
+                                this.$message({ message: "数据库录入已更新", type: "success" });
+                                this.showCard = false;
+                            }
+                            else {
+                                this.$message.error("教练员员制卡录入数据库失败456！原因：" + res.message);
+                            }
+                            this.btnLoading1 = false;
+                        });
+                    }
+                }
+            });
+        },
+        cancelMake() {
+            this.$confirm('是否放弃当前制卡操作?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                // console.warn(this.isNewCreate);
+                this.$message({
+                    type: 'success',
+                    message: '已取消制卡'
+                });
+                this.showCard = false;
+            }).catch(() => {
+                return;
+            });
+        },
+         getData(para) {
+            //  alert('getData');
+            request.basic.coach.query.makeCardInfoById(para).then(res => {
+                let tmpObj = res.object;
+                console.log(tmpObj)
+                this.ruleForm.CoachNo = tmpObj.teacherId;
+                this.ruleForm.CoachName = tmpObj.teacherName;
+                this.ruleForm.SchoolNo = tmpObj.schoolCode;
+                this.ruleForm.CoachPwd = tmpObj.teacherPwd;
+                // this.ruleForm.FingerMB1 = tmpObj.fingerMB1; // 数据库没数据 暂时用假数据
+                // this.ruleForm.FingerMB2 = tmpObj.fingerMB2; // 数据库没数据 暂时用假数据
+                this.ruleForm.CoachDryType = tmpObj.teachCarTypeName;
+                this.ruleForm.NoFinger = tmpObj.fingerprint;
+                this.ruleForm.SfzNo = global.convertToString(this.editCoachForm.idNumber);
+            });
+        },
     },
     components: {
         PCA
@@ -3213,111 +3271,111 @@ export default {
 </script>
 
 <style scope lang="scss">
-.el-dialog__body {
-    padding: 0 20px;
-    .el-dialog__header {
-        padding: 20px 20px 20px;
+    .el-dialog__body {
+        padding: 0 20px;
+        .el-dialog__header {
+            padding: 20px 20px 20px;
+        }
     }
-}
 
-.leaveForm {
-    margin-top: 20px;
-    .el-date-editor.el-input,
-    .el-textarea__inner {
-        width: 300px;
+    .leaveForm {
+        margin-top: 20px;
+        .el-date-editor.el-input,
+        .el-textarea__inner {
+            width: 300px;
+        }
     }
-}
 
-.wall {
-    border: 1px solid #E7EBED;
-    margin: 0;
-    border-right: 0;
-}
+    .wall {
+        border: 1px solid #E7EBED;
+        margin: 0;
+        border-right: 0;
+    }
 
-.wall .data-header {
-    height: 64px;
-    width: 100%;
-}
+    .wall .data-header {
+        height: 64px;
+        width: 100%;
+    }
 
-.wall .data-header .left-header {
-    width: 100px;
-    float: left;
-    display: inline-block;
-    border-right: 1px solid #E7EBED;
-}
+    .wall .data-header .left-header {
+        width: 100px;
+        float: left;
+        display: inline-block;
+        border-right: 1px solid #E7EBED;
+    }
 
-.wall .data-header .left-header div.back-slant {
-    width: 100px;
-    height: 63px;
-    position: relative;
-    background-color: transparent;
-}
+    .wall .data-header .left-header div.back-slant {
+        width: 100px;
+        height: 63px;
+        position: relative;
+        background-color: transparent;
+    }
 
-.wall .data-header .left-header div.back-slant span.time {
-    left: 55px;
-    top: 8px;
-}
+    .wall .data-header .left-header div.back-slant span.time {
+        left: 55px;
+        top: 8px;
+    }
 
-.wall .data-header .left-header div.back-slant span.coach {
-    left: 18px;
-    top: 35px;
-}
+    .wall .data-header .left-header div.back-slant span.coach {
+        left: 18px;
+        top: 35px;
+    }
 
-.wall .data-header .left-header div.back-slant span {
-    position: absolute;
-    z-index: 999;
-    font-size: 14px;
-    color: #8799AB;
-}
+    .wall .data-header .left-header div.back-slant span {
+        position: absolute;
+        z-index: 999;
+        font-size: 14px;
+        color: #8799AB;
+    }
 
-.wall .data-header .left-header div.back-slant:before {
-    position: absolute;
-    top: 0px;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    border-bottom: 63px solid #E7EBED;
-    border-right: 101px solid transparent;
-    content: "";
-}
+    .wall .data-header .left-header div.back-slant:before {
+        position: absolute;
+        top: 0px;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        border-bottom: 63px solid #E7EBED;
+        border-right: 101px solid transparent;
+        content: "";
+    }
 
-.wall .data-header .left-header div.back-slant:after {
-    position: absolute;
-    left: 0;
-    right: 1px;
-    top: 1px;
-    bottom: 0;
-    border-bottom: 63px solid #FFF;
-    border-right: 101px solid transparent;
-    content: "";
-}
+    .wall .data-header .left-header div.back-slant:after {
+        position: absolute;
+        left: 0;
+        right: 1px;
+        top: 1px;
+        bottom: 0;
+        border-bottom: 63px solid #FFF;
+        border-right: 101px solid transparent;
+        content: "";
+    }
 
-.wall .data-header .right-top {
-    float: left;
-    display: inline-block;
-    height: 64px;
-}
+    .wall .data-header .right-top {
+        float: left;
+        display: inline-block;
+        height: 64px;
+    }
 
-.wall .data-header .right-top .week-row {
-    height: 64px;
-    width: 100%;
-    border-bottom: 1px solid #E7EBED;
-}
+    .wall .data-header .right-top .week-row {
+        height: 64px;
+        width: 100%;
+        border-bottom: 1px solid #E7EBED;
+    }
 
-.wall .data-header .right-top .week-row span {
-    height: 20px;
-    line-height: 40px;
-    display: block;
-}
+    .wall .data-header .right-top .week-row span {
+        height: 20px;
+        line-height: 40px;
+        display: block;
+    }
 
-.wall .data-header .right-top .week-row a {
-    display: inline-block;
-    height: 53px;
-    text-align: center;
-    text-decoration: none;
-    color: #8799ab;
-    float: left;
-    border-right: 1px solid #E7EBED;
-    padding: 6px 30px;
-}
+    .wall .data-header .right-top .week-row a {
+        display: inline-block;
+        height: 53px;
+        text-align: center;
+        text-decoration: none;
+        color: #8799ab;
+        float: left;
+        border-right: 1px solid #E7EBED;
+        padding: 6px 30px;
+    }
 </style>
