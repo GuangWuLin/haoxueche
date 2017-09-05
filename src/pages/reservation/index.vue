@@ -25,18 +25,6 @@
             </el-col>
         </el-row>
         <el-row>
-            <!--<div class="wall-container hide">
-                    <div class="header-two">
-                        <swiper :options="swiperOption" ref="swiper">
-                            <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
-                                <p>{{item.date}}</p>
-                                <p>{{item.week}}</p>
-                            </swiper-slide>
-                            <div class="swiper-button-prev" slot="button-prev"></div>
-                            <div class="swiper-button-next" slot="button-next"></div>
-                        </swiper>
-                    </div>
-                </div>-->
             <div class="reservation-list">
                 <div class="table-left">
                     <table cellpadding="0" cellspacing="0">
@@ -46,7 +34,7 @@
                                     <img v-bind:src="item.photosUrl" />
                                 </p>
                                 <p>{{item.teacherName}}</p>
-                                <!--<p>{{item.phone}}</p>-->
+                                <p>{{item.phone}}</p>
                             </td>
                         </tr>
                     </table>
@@ -55,9 +43,16 @@
                     <table cellpadding="0" cellspacing="0">
                         <tr v-for="item in reservationData">
                             <td v-for="dos in item.timeDOS">
-                                <a class="time-container" href="javascript:" v-if="dos.isOrder" slot="reference" @click="handleOpenReservationWin(dos)">
+                                <a class="time-container full" href="javascript:" v-if="dos.isOrder===0&&dos.message==='约满'" @click="handleOpenReservationWin(dos)">
+                                    <p>{{dos.orderTime}}</p>
+                                    <p class="full">{{dos.message}}</p>
+                                </a>
+                                <a class="time-container" href="javascript:" v-else-if="dos.isOrder" slot="reference" @click="handleOpenReservationWin(dos)">
                                     <p>{{dos.orderTime}}</p>
                                     <p>{{dos.message}}</p>
+                                    <div class="reservation-layer" style="position:absolute;width:300px;height:220px;outline:1px solid #000;top:0;right:115px;display:none;">
+                                        123
+                                    </div>
                                 </a>
                                 <a v-else v-bind:style="{ backgroundColor:'#657690',color:'#FFF' }" class="time-container no-cursor" slot="reference">
                                     <p>{{dos.orderTime}}</p>
@@ -91,15 +86,15 @@
                     </el-form-item>
                 </el-form>
             </el-row>
-            <el-row>
-                <el-table :data="students.data" v-loading="filters.stu.loading">
+            <el-row class="reservation-stu-list">
+                <el-table :data="students.data" v-loading="filters.stu.loading" :row-class-name="bindRowClass">
                     <el-table-column prop="studentName" label="学员姓名">
                     </el-table-column>
                     <el-table-column prop="genderName" label="性别">
                     </el-table-column>
                     <el-table-column prop="phone" label="电话">
                     </el-table-column>
-                    <el-table-column prop="cardNo" label="身份证">
+                    <el-table-column prop="cardNo" label="身份证" width="180">
                     </el-table-column>
                     <el-table-column prop="carTypeName" label="车型">
                     </el-table-column>
@@ -109,7 +104,7 @@
                     </el-table-column>
                     <el-table-column label="操作">
                         <template scope="scope">
-                            <el-button type="text" size="small" @click.stop="createAppointment(scope.row.studentId)">预约TA</el-button>
+                            <el-button type="text" size="small" @click.stop="createAppointment(scope.row)" v-bind:style="scope.row.isOrder===0?{'color':'#20A0FF'}:{'color':'#FF4949'}">{{scope.row.isOrder===0?'预约TA':'取消预约'}}</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -131,6 +126,7 @@ export default {
         return {
             pageLoading: false,
             pageSize: global.pageSize,
+            userId: JSON.parse(sessionStorage.getItem("user")).userId,
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
             dateList: [],
             modelOptions: [],
@@ -211,6 +207,7 @@ export default {
                             this.filters.wall.emptyVisible = true;
                         }
                         this.pageLoading = false;
+                        global.printLog(this.reservationData);
                     }
                 });
             }, 1000);
@@ -262,17 +259,18 @@ export default {
         },
         handleQueryStu() {
             let data = this.curCoach;
+            let lastPerson = (data.personCount - data.personHas);
             this.studentForm = {
                 teacherId: data.teacherId,
                 stageName: this.$refs.stageSel.selectedLabel,
                 modelName: this.$refs.modelSel.selectedLabel,
-                lastPerson: (data.personCount - data.personHas),
+                lastPerson: lastPerson < 0 ? 0 : lastPerson,
                 reservationDateTime: data.beginTime.split(" ")[0] + " " + global.getWeek(new Date(data.beginTime).getDay()) + " " + data.orderTime
             }
             this.studentFormVisible = true;
             this.filters.stu.loading = true;
             setTimeout(() => {
-                let paras = [this.schoolCode, this.students.page, this.pageSize, data.teacherId, this.filters.stu.keyword];
+                let paras = [this.schoolCode, this.students.page, this.pageSize, data.teacherId, this.filters.stu.keyword, this.$refs.modelSel.value, this.$refs.stageSel.value, data.beginTime, data.endTime];
                 request.appointment.query.wallQueryStudent(paras).then((res) => {
                     if (res.success) {
                         this.students.total = res.object.num;
@@ -286,32 +284,66 @@ export default {
             this.students.page = val;
             this.handleQueryStu();
         },
-        createAppointment(stuId) {
-            let _reservationDateTime = this.studentForm.reservationDateTime;
-            let paras = {
-                infos: [{
-                    beginTime: _reservationDateTime.split(" ")[0] + " " + _reservationDateTime.split(" ")[2].split("-")[0] + ":00",
-                    endTime: _reservationDateTime.split(" ")[0] + " " + _reservationDateTime.split(" ")[2].split("-")[1] + ":00",
-                    teacherId: this.studentForm.teacherId,
-                    studentId: stuId,
-                    appointmentStage: this.filters.wall.stage,
-                    schoolCode: this.schoolCode,
-                    modelId: this.filters.wall.model,
-                    appointmentType: 10,
-                    appointmentUserType: 30,
-                    appointmentUserId: JSON.parse(sessionStorage.getItem("user")).userId
-                }]
-            };
-            request.appointment.create.appointmentinfo(paras).then((res) => {
-                if (res.success) {
-                    this.$message.success({ message: res.object.message });
-                }
-            });
+        createAppointment(data) {
+            let isOrder = data.isOrder;
+            let stuId = data.studentId;
+            if (isOrder > 0) {
+                this.$confirm("您正在执行取消预约操作, 是否继续?", "提示", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    closeOnClickModal: false,
+                    type: "warning"
+                }).then(() => {
+                    let para = {
+                        appointmentId: data.appointmentId,
+                        cancelUserId: this.userId,
+                        cancelUserType: 30
+                    }
+                    request.appointment.cancel(para).then((res) => {
+                        if (res.object.state > 0) {
+                            this.handleQueryStu();
+                            this.$message.success(res.object);
+                        }
+                        else {
+                            this.$message.error(res.object);
+                        }
+                    });
+                }).catch(() => { });
+            }
+            else {
+                let _reservationDateTime = this.studentForm.reservationDateTime;
+                let paras = {
+                    infos: [{
+                        beginTime: _reservationDateTime.split(" ")[0] + " " + _reservationDateTime.split(" ")[2].split("-")[0] + ":00",
+                        endTime: _reservationDateTime.split(" ")[0] + " " + _reservationDateTime.split(" ")[2].split("-")[1] + ":00",
+                        teacherId: this.studentForm.teacherId,
+                        studentId: stuId,
+                        appointmentStage: this.filters.wall.stage,
+                        schoolCode: this.schoolCode,
+                        modelId: this.filters.wall.model,
+                        appointmentType: 10,
+                        appointmentUserType: 30,
+                        appointmentUserId: this.userId
+                    }]
+                };
+                request.appointment.create.appointmentinfo(paras).then((res) => {
+                    if (res.success) {
+                        this.handleQueryStu();
+                        this.$message.success({ message: res.object.message });
+                    }
+                });
+            }
         },
         handleDialogClose() {
             this.students.page = 1;
             this.filters.stu.keyword = "";
             this.handleQueryAfterResetData();
+        },
+        bindRowClass(row, index) {
+            if (row.isOrder === 1) {
+                return "booked";
+            }
+            return "";
         },
         handlePopoverShow(data) {
             // let p = $(".el-popover");
@@ -370,21 +402,34 @@ export default {
 
 .reservation-list table th,
 .reservation-list table td {
-    border: 1px solid #E7EBED;
-    border-top: 0;
+    border: 1px solid #E7EBED; // border-top: 0;
+    border-bottom: 0;
     text-align: center;
     background: #fff;
     white-space: nowrap;
-    width: 115px;
-    height: 90px;
+    min-width: 115px;
+    height: 100px;
     .time-container {
-        margin-top: 1px; // margin-bottom: 1px;
+        margin-top: 0; // margin-bottom: 1px;
         display: block;
         height: 100%;
+        &:hover {
+            .reservation-layer {
+                display: block;
+                background: #ff0000;
+            }
+        }
         >p {
             margin-bottom: 5px;
             position: relative;
             top: 30px;
+            &.full {
+                color: #FF4949;
+                font-weight: bolder;
+            }
+        }
+        &.full {
+            background: #E9ECF0;
         }
     }
     span {
@@ -395,6 +440,9 @@ export default {
         outline: 1px solid #13CA4C;
         background-color: rgba(19, 202, 76, .1);
     }
+    &:last-child {
+        border-bottom: 1px solid #E7EBED;
+    }
 }
 
 .reservation-list table:first-child td {
@@ -403,6 +451,7 @@ export default {
             width: 40px;
             height: 40px;
             border-radius: 100%;
+            margin-top: 8px;
         }
     }
 }
@@ -448,11 +497,17 @@ export default {
         background-color: #FFE1D1;
         border-radius: 4px;
         padding: 6px;
-        color: #FF9160;
+        color: #1F2D3D;
     }
     em {
         color: #333;
         font-style: normal;
+    }
+}
+
+.reservation-stu-list {
+    .el-table .booked {
+        background: #E9ECF0;
     }
 }
 

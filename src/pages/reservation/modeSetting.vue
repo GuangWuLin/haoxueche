@@ -525,7 +525,7 @@ export default {
         this.handleQueryList();
     },
     updated() {
-        console.log("updated ing...");
+        global.printLog("updated ing...");
     },
     mounted() {
     }

@@ -14,21 +14,21 @@
                     </el-date-picker>
                 </el-row>
                 <el-table :data="receipts" @row-click="handleRowClick" :highlight-current-row="true">
-                    <el-table-column prop="recCode" label="单据号">
+                    <el-table-column prop="recCode" label="单据号" width="140">
                     </el-table-column>
                     <el-table-column prop="deptName" label="单位">
                     </el-table-column>
-                    <el-table-column prop="addUserName" label="制单人" width="120">
+                    <!--<el-table-column prop="addUserName" label="制单人" width="120">
                     </el-table-column>
                     <el-table-column prop="accountName" label="资金账户">
                     </el-table-column>
                     <el-table-column prop="payTypeName" label="支付方式">
-                    </el-table-column>
+                    </el-table-column>-->
                     <el-table-column prop="cost" label="金额(元)">
                     </el-table-column>
-                    <el-table-column prop="recTypeName" label="单据类型">
+                    <el-table-column prop="recTypeName" label="单据类型" :show-overflow-tooltip="true">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="制单日期" width="160">
+                    <el-table-column prop="gmtCreate" label="制单日期" width="180">
                     </el-table-column>
                     <el-table-column prop="stateName" label="审核状态">
                     </el-table-column>
@@ -49,12 +49,17 @@
         <el-dialog title="制单详情" v-model="receiptDetailFormVisible" :close-on-click-modal="false" size="full">
             <el-form v-model="recDetail" class="basic mt0 pt0 pb0">
                 <el-row>
-                    <el-col :span="16">
+                    <el-col :span="10">
                         <p class="mt15">
                             <span>所属单位：{{recDetail.deptName}}</span>
                         </p>
                     </el-col>
-                    <el-col :span="8">
+                    <el-col :span="6">
+                        <p class="mt15">
+                            <span>制单人：{{recDetail.addUserName}}</span>
+                        </p>
+                    </el-col>
+                    <el-col :span="7">
                         <p class="t-right">
                             <el-button type="danger" @click="handleCheck(recDetail.recId,30)" size="large" v-if="recDetail.state===10">不通过</el-button>
                             <el-button type="success" @click="handleCheck(recDetail.recId,20)" size="large" v-if="recDetail.state===10">通过</el-button>
@@ -89,11 +94,11 @@
                 </el-table-column>
                 <el-table-column prop="studentCardTypeName" label="证件类型">
                 </el-table-column>
-                <el-table-column prop="studentCardNo" label="证件号码" width="160">
+                <el-table-column prop="studentCardNo" label="证件号码" width="200">
                 </el-table-column>
-                <el-table-column prop="phone" label="电话号码">
+                <el-table-column prop="phone" label="电话号码" width="140">
                 </el-table-column>
-                <el-table-column prop="gmtCreate" label="制单时间" width="160">
+                <el-table-column prop="gmtCreate" label="制单时间" width="180">
                 </el-table-column>
                 <el-table-column prop="remark" label="备注">
                 </el-table-column>
@@ -221,7 +226,7 @@ export default {
                     if (LODOP.CVERSION) {
                         LODOP.On_Return = (TaskID, Value) => {
                             if (Value === "1") {
-                                console.log("Value：" + Value);
+                                global.printLog("Value：" + Value);
                                 this.updateReceiptsPrint(this.recDetail.recId, () => {
                                     this.financialVoucher = [];
                                     this.financialVoucherCurPage = 1;
@@ -315,7 +320,7 @@ export default {
                             studentCardNo: data[item].studentCardNo,
                             studentCarTypeName: data[item].studentCarTypeName,
                             cost: data[item].cost,
-                            gmtModify: new Date(data[item].gmtModify).Format("yyyy-MM-dd"),
+                            gmtModify: data[item].gmtModify.split(" ")[0],
                             remark: data[item].remark
                         });
                     }

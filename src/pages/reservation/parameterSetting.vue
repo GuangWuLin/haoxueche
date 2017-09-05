@@ -2,7 +2,7 @@
     <section class="addParameterForm" v-loading="pageLoading">
         <el-form :model="addParameterForm" :rules="parameterFormRule" label-width="165px" class="mt20" ref="addParameterForm">
             <el-form-item label="可提前预约" prop="advanceAppointmentHour">
-                <el-input v-model="addParameterForm.advanceAppointmentHour"></el-input>
+                <el-input v-model="addParameterForm.advanceAppointmentHour" ref="advanceAppointmentHour"></el-input>
                 <span class="unit">小时</span>
             </el-form-item>
             <el-form-item label="提前取消预约" prop="advanceCancelHour">
@@ -13,8 +13,22 @@
                 <el-input v-model="addParameterForm.beforeSignMin"></el-input>
                 <span class="unit">分钟</span>
             </el-form-item>
+            <el-form-item label="训前提前禁约" prop="studyBeforHour">
+                <el-input v-model="addParameterForm.studyBeforHour"></el-input>
+                <span class="unit">小时</span>
+            </el-form-item>
+            <el-form-item label="报班延迟查询" prop="classPassMin">
+                <el-input v-model="addParameterForm.classPassMin"></el-input>
+                <span class="unit">分钟</span>
+            </el-form-item>
             <el-form-item label="预约限制学员签到" prop="judgeAppointment">
                 <el-select v-model="addParameterForm.judgeAppointment" :clearable="false" placeholder="请选择">
+                    <el-option label="否" :value="false"></el-option>
+                    <el-option label="是" :value="true"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="是否可预约当天" prop="orderDay">
+                <el-select v-model="addParameterForm.orderDay" :clearable="false" placeholder="请选择">
                     <el-option label="否" :value="false"></el-option>
                     <el-option label="是" :value="true"></el-option>
                 </el-select>
@@ -81,8 +95,14 @@ export default {
                 else if (target === "beforeSignMin") {
                     msg = "请填写学员提前签到分钟";
                 }
-                else {
+                else if (target === "afterExitMin") {
                     msg = "请填写预约结束后强制签退时间";
+                }
+                else if (target === "studyBeforHour") {
+                    msg = "请填写训前提前禁约小时";
+                }
+                else if (target === "classPassMin") {
+                    msg = "请填写报班延迟查询分钟";
                 }
                 return callback(new Error(msg));
             }
@@ -96,8 +116,14 @@ export default {
                 else if (target === "beforeSignMin") {
                     msg = "提前签到分钟必须为大于0的纯数字";
                 }
-                else {
+                else if (target === "afterExitMin") {
                     msg = "强制签退时间必须为大于0的纯数字";
+                }
+                else if (target === "studyBeforHour") {
+                    msg = "训前提前禁约小时必须为大于0的纯数字";
+                }
+                else if (target === "classPassMin") {
+                    msg = "报班延迟查询分钟必须为大于0的纯数字";
                 }
                 return callback(new Error(msg));
             }
@@ -119,6 +145,12 @@ export default {
                 else if (target === "afterExitMin" && value > 60) {
                     return callback(new Error("强制签退时间不能大于60"));
                 }
+                else if (target === "studyBeforHour" && value >= this.$refs.advanceAppointmentHour.value) {
+                    return callback(new Error("训前提前禁约小时必须小于可提前预约小时"));
+                }
+                else if (target === "classPassMin" && value > 60) {
+                    return callback(new Error("报班延迟查询分钟不能大于60"));
+                }
             }
             callback();
         }
@@ -133,8 +165,10 @@ export default {
                 forceExit: false,
                 afterExitMin: 0,
                 beforeSignMin: 0,
+                studyBeforHour: 0,
+                classPassMin: 0,
                 judgeAppointment: false,
-                studyBeforHour: 0
+                orderDay: false
             },
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
             parameterFormRule: {
@@ -149,6 +183,12 @@ export default {
                 ],
                 afterExitMin: [
                     { required: true, validator: parametersValidator, trigger: "blur", target: "afterExitMin" }
+                ],
+                studyBeforHour: [
+                    { required: true, validator: parametersValidator, trigger: "blur", target: "studyBeforHour" }
+                ],
+                classPassMin: [
+                    { required: true, validator: parametersValidator, trigger: "blur", target: "classPassMin" }
                 ]
             }
         }
@@ -160,7 +200,9 @@ export default {
                 request.appointment.para.query(this.schoolCode).then((res) => {
                     if (res.success === true) {
                         this.pageLoading = false;
-                        this.addParameterForm = res.object;
+                        if (res.object) {
+                            this.addParameterForm = res.object;
+                        }
                     }
                 });
             }, 1000);

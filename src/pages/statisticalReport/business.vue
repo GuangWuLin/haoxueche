@@ -129,6 +129,7 @@ export default {
     methods: {
         queryRecruitStudents() {
             this.recruitStudents.para[0] = this.schoolCode;
+            // console.warn(this.recruitStudents.para)
             request.reportCentre.business.queryRecruitStudents(this.recruitStudents.para).then(res => {
                 global.printLog(res);
                 if (res.success) {

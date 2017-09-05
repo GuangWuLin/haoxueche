@@ -86,7 +86,7 @@ export default {
             total: 0,
             args: [0, 1, 10],
             pageLoading: false,
-            fileUploadAction: request.baseUrl + "/file/uploadFile",
+            fileUploadAction: sessionStorage.getItem("baseUrl") + "/file/uploadFile",
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
             branchSchool: [],
             branchSchoolFormVisible: false,
@@ -260,7 +260,7 @@ export default {
                     if (res.success === true) {
                         this.pageLoading = false;
                         let data = res.object;
-                        console.log(data);
+                        global.printLog(data);
                         this.total = data.num;
                         this.branchSchool = data.list;
                     }

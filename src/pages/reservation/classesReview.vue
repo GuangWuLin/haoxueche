@@ -25,20 +25,6 @@
                 <el-button type="primary" :disabled="selected.length?false:true" @click="checkingClasses">审核{{selected.length?'('+selected.length+')':''}}</el-button>
             </el-form-item>
         </el-form>
-        <!--<el-row class="review-tool">
-                <div class="wall-container">
-                    <div class="header-two">
-                        <swiper :options="swiperOption" ref="swiper">
-                            <swiper-slide v-for="item in dateList" v-bind:class="[item.click?'is-active':'']">
-                                <p>{{item.date}}</p>
-                                <p>{{item.week}}</p>
-                            </swiper-slide>
-                            <div class="swiper-button-prev" slot="button-prev"></div>
-                            <div class="swiper-button-next" slot="button-next"></div>
-                        </swiper>
-                    </div>
-                </div>
-            </el-row>-->
         <el-row>
             <div v-for="list in classesReview.list" class="classes-review">
                 <div class="coach-photo">
@@ -336,6 +322,44 @@ export default {
                     border-color: #20a0ff;
                     >p {
                         color: #20a0ff;
+                    }
+                    &.cancel {
+                        position: relative;
+                        .cancel-tip {
+                            position: absolute;
+                            bottom: 1px;
+                            width: 100%;
+                            height: 24px;
+                            // line-height: 24px;
+                            background: #fff;
+                            display: none;
+                        }
+                        .cancel-layer {
+                            // border: 1px solid #20a0ff;
+                            width: 100%;
+                            height: 24px;
+                            position: absolute;
+                            right: 0;
+                            bottom: 0;
+                            display: none;
+                            border-bottom-right-radius: 3px;
+                            border-bottom-left-radius: 3px;
+                            background: #FFF;
+                            cursor: pointer;
+                            &.layer-show {
+                                display: block;
+                            }
+                            >.el-icon-check {
+                                color: #20a0ff;
+                                font-size: 1.2em;
+                                margin-top: 5px;
+                            }
+                        }
+                    }
+                    &:hover {
+                        >.cancel-tip {
+                            display: block;
+                        }
                     }
                 }
             }

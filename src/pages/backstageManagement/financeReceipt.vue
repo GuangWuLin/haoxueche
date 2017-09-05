@@ -22,19 +22,11 @@
                     </el-table-column>
                     <el-table-column prop="deptName" label="单位">
                     </el-table-column>
-                    <el-table-column prop="addUserName" label="制单人">
-                    </el-table-column>
-                    <el-table-column prop="accountName" label="资金账户">
-                    </el-table-column>
-                    <el-table-column prop="payTypeName" label="支付方式">
-                    </el-table-column>
                     <el-table-column prop="cost" label="金额(元)">
                     </el-table-column>
                     <el-table-column prop="recTypeName" label="单据类型">
                     </el-table-column>
-                    <el-table-column prop="remark" label="摘要">
-                    </el-table-column>
-                    <el-table-column prop="gmtCreate" label="制单日期">
+                    <el-table-column prop="gmtCreate" label="制单日期" width="200">
                     </el-table-column>
                     <el-table-column prop="stateName" label="审核状态">
                     </el-table-column>
@@ -94,7 +86,7 @@
                             </el-table-column>
                             <el-table-column prop="studentCardTypeName" label="证件类型">
                             </el-table-column>
-                            <el-table-column prop="studentCardNo" label="证件号码">
+                            <el-table-column prop="studentCardNo" label="证件号码" width="200">
                             </el-table-column>
                             <el-table-column prop="phone" label="电话号码">
                             </el-table-column>
@@ -164,12 +156,16 @@
             <el-dialog title="制单详情" v-model="receiptDetailFormVisible" :close-on-click-modal="false" size="full">
                 <el-form v-model="recDetail" class="basic mt0 pt0 pb0">
                     <el-row>
-                        <el-col :span="20">
+                        <el-col :span="14">
                             <p class="mt15">
                                 <span>所属单位：{{recDetail.deptName}}</span>
                             </p>
                         </el-col>
-                        <el-col :span="4"></el-col>
+                        <el-col :span="4">
+                            <p class="mt15">
+                                <span>制单人：{{recDetail.addUserName}}</span>
+                            </p>
+                        </el-col>
                     </el-row>
                     <el-row>
                         <el-col :span="5">
@@ -188,6 +184,9 @@
                             <span>学员人数：{{detailTotal}}人</span>
                         </el-col>
                     </el-row>
+                    <el-row>
+                        <span>摘要：{{recDetail.remark}}</span>
+                    </el-row>
                 </el-form>
                 <p class="group-title">学员明细</p>
                 <el-table :data="receiptDetailData">
@@ -199,11 +198,11 @@
                     </el-table-column>
                     <el-table-column prop="studentCardTypeName" label="证件类型">
                     </el-table-column>
-                    <el-table-column prop="studentCardNo" label="证件号码">
+                    <el-table-column prop="studentCardNo" label="证件号码" width="200">
                     </el-table-column>
-                    <el-table-column prop="phone" label="电话号码">
+                    <el-table-column prop="phone" label="电话号码" width="140">
                     </el-table-column>
-                    <el-table-column prop="gmtModify" label="制单时间">
+                    <el-table-column prop="gmtModify" label="制单时间" width="180">
                     </el-table-column>
                     <el-table-column prop="remark" label="备注">
                     </el-table-column>
@@ -473,7 +472,9 @@ export default {
                             value: data[item].recTypeId
                         });
                     }
-                    this.addReceiptForm.recType = data[0].recTypeId;
+                    if (data.length) {
+                        this.addReceiptForm.recType = data[0].recTypeId;
+                    }
                 }
             });
         },
@@ -695,6 +696,7 @@ export default {
         },
         //Dialog被打开回调
         dialogOpen() {
+            this.queryReceiptsType();
             global.printLog("opened");
             //this.queryUnits("cascader");
             $(".el-cascader-menus").css("z-index", "20002");
@@ -728,7 +730,7 @@ export default {
                             studentCardNo: data[item].studentCardNo,
                             studentCarTypeName: data[item].studentCarTypeName,
                             cost: data[item].cost,
-                            gmtModify: new Date(data[item].gmtModify).Format("yyyy-MM-dd"),
+                            gmtModify: data[item].gmtModify.split(" ")[0],
                             remark: data[item].remark
                         });
                     }
@@ -768,7 +770,7 @@ export default {
                     if (LODOP.CVERSION) {
                         LODOP.On_Return = (TaskID, Value) => {
                             if (Value === "1") {
-                                console.log(Value);
+                                global.printLog(Value);
                                 this.updateReceiptsPrint(recId, () => {
                                     this.financialVoucher = [];
                                     this.financialVoucherCurPage = 1;
@@ -809,7 +811,6 @@ export default {
         this.queryUnits("cascader");
         this.queryPayType();
         this.queryAccount();
-        this.queryReceiptsType();
         this.initCreating(true);
         this.addReceiptForm.schoolCode = this.schoolCode;
         this.financialVoucher = [];

@@ -12,13 +12,13 @@
                     </el-table-column>
                     <el-table-column prop="gender" label="性别" :formatter="formatSex">
                     </el-table-column>
-                    <el-table-column prop="idNumber" label="身份证">
+                    <el-table-column prop="idNumber" label="身份证" width="200">
                     </el-table-column>
-                    <el-table-column prop="phone" label="电话">
+                    <el-table-column prop="phone" label="电话" width="140">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="创建时间" :formatter="formatDate">
+                    <el-table-column prop="gmtCreate" label="创建时间" :formatter="formatDate" width="200">
                     </el-table-column>
-                    <el-table-column label="操作">
+                    <el-table-column label="操作" width="140">
                         <template scope="scope">
                             <el-button type="text" size="small" @click.stop="editAuthority(scope.row)" :disabled="scope.row.isDisabled">编辑权限</el-button>
                             <el-button type="text" size="small" @click.stop="delUser(scope.row.userId)" :disabled="scope.row.isDisabled">删除</el-button>
@@ -135,7 +135,7 @@ export default {
             args: [0, 1, 10],
             pageLoading: false,
             userFormVisible: false,
-            fileUploadAction: request.baseUrl + "/file/uploadFile",
+            fileUploadAction: sessionStorage.getItem("baseUrl") + "/file/uploadFile",
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
             userForm: {
                 schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
@@ -410,18 +410,20 @@ export default {
             this.editPayPasswordForm.userId = user.userId;
             this.editPayPasswordForm.userName = user.phone;
             request.systemSettings.users.functions.query(user.userId).then((res) => {
-                if (res.success === true) {
+                if (res.success) {
                     this.defaultAuthority = [];
                     this.userEditFormVisible = true;
-                    for (var item in res.object) {
-                        if (res.object[item] === "206000") {//是否包含充值权限
-                            this.hasPay = res.object[item]
+                    setTimeout(() => {
+                        for (var item in res.object) {
+                            if (res.object[item] === "206000") {//是否包含充值权限
+                                this.hasPay = res.object[item];
+                            }
+                            this.defaultAuthority.push(res.object[item]);
                         }
-                        this.defaultAuthority.push(res.object[item]);
-                    }
-                    if (this.$refs.editAuthorityTree) {
-                        this.$refs.editAuthorityTree.setCheckedKeys(this.defaultAuthority);
-                    }
+                        if (this.$refs.editAuthorityTree) {
+                            this.$refs.editAuthorityTree.setCheckedKeys(this.defaultAuthority);
+                        }
+                    }, 50);
                 }
             });
         },

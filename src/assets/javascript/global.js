@@ -143,6 +143,27 @@ var global = {
                 review_fail: "复审失败",
                 teacher_sign_out: "正在教练签退"
             }
+        },
+        vehicles: {
+            superviseStatus: {
+                UN_DO: "未备案",
+                DOING: "备案中",
+                SUCCESS: "已备案",
+                FAIL: "备案失败"
+            }
+        },
+        remindType: {
+            WEB: "网站推送",
+            SMS: "短信提醒"
+        },
+        messagesType: {
+            "全部": "",
+            "普通消息": "normal",
+            "普通报警": "normal",
+            "预约": "appointment",
+            "学时审核": "class_record",
+            "车辆保险": "car_insurance",
+            "车辆年检": "car_annualcheck"
         }
     },
     //下拉选项值
@@ -192,6 +213,33 @@ var global = {
                 value: "1",
                 label: "离职"
             },
+        ],
+        zone: [
+            {
+                label: "四川省",
+                value: "510000",
+                //disabled: true
+            },
+            {
+                label: "云南省",
+                value: "530000",
+                //disabled: true
+            },
+            {
+                label: "湖南省",
+                value: "430000",
+                //disabled: true
+            },
+            {
+                label: "青海省",
+                value: "630000",
+                //disabled: true
+            },
+            {
+                label: "福建省",
+                value: "350000",
+                //disabled: true
+            }
         ]
     },
     //图表
@@ -314,16 +362,16 @@ var global = {
             /*移动号段
             1706,853,1703,147,1705,184,178,182,183,187,188,157,158,159,150,151,152,134,135,136,137,138,139,148
             规则：可以以0开头+三位固定号段+8为数字*/
-            var pattern1 = new RegExp(/^0{0,1}(13[4-9]|14[78]|15[0-2]|15[7-9]|178|18[2-4]|18[78]|853|1703|1705|1706)[0-9]{8}$/);
+            var pattern1 = new RegExp(/^0{0,1}(13[4-9]|14[78]|15[0-2]|15[7-9]|170|178|18[2-4]|18[78]|853)[0-9]{8}$/);
             //var pattern1 = new RegExp(/^0{0,1}(13[4-9]|147|15[0-2]|15[7-9]|178|18[23478])[0-9]{8}$/);
             /*联通号段
             0,130,131,132,155,156,185,186,145,176,154,171,1704,1707,1708,1709,175
             */
-            var pattern2 = new RegExp(/^0{0,1}(13[0-2]|145|15[4-6]|171|17[56]|18[56]|1704|1707|1708|1709)[0-9]{8}$/);
+            var pattern2 = new RegExp(/^0{0,1}(13[0-2]|145|15[4-6]|170|171|17[56]|18[56])[0-9]{8}$/);
             /*电信号段
             149,153,133,180,189,181,177,173,1701,1702,1700
             */
-            var pattern3 = new RegExp(/^0{0,1}(133|149|153|173|177|18[01]|189|1700|1701|1702)[0-9]{8}$/);
+            var pattern3 = new RegExp(/^0{0,1}(133|149|153|170|173|177|18[01]|189)[0-9]{8}$/);
 
             /*座机号码
             */
@@ -478,6 +526,22 @@ var global = {
                 }
             }
             return pass;
+        },
+        //是否为护照
+        isPassport: function (field) {
+            let reg = /^1[45][0-9]{7}|([P|p|S|s]\d{7})|([S|s|G|g]\d{8})|([Gg|Tt|Ss|Ll|Qq|Dd|Aa|Ff]\d{8})|([H|h|M|m]\d{8，10})$/;
+            if (!reg.test(field)) {
+                return false;
+            }
+            return true;
+        },
+        //是否为军官证
+        isOfficerCertificate: function (field) {
+            let reg = /^[a-zA-Z0-9]{7,18}$/;
+            if (!reg.test(field)) {
+                return false;
+            }
+            return true;
         }
     },
     user: {
@@ -698,7 +762,12 @@ var global = {
             value: data.baseFunction.functionName,
             firstLevel: data.baseFunction.firstLevel
         };
-        if (orgdata.value !== "场地管理") { }
+        // console.log(orgdata.value);
+        // 消息中心
+        // 消息
+        // 报警
+        // 公告
+        //if (orgdata.value !== "场地管理") { }
         if (data.childList) {
             $.extend(orgdata, { children: [] });
         }
@@ -838,23 +907,28 @@ var global = {
     readSignatureData(callback) {
         var obj = document.getElementById("ocx");
         //验证USBKey是否存在
-        var isKeyPlugIn = obj.isKeyPlugIn();
-        if (!isKeyPlugIn) {
-            alert("未插入签章需要的Key！");
-            return false;
+        if (typeof obj.isKeyPlugIn === "undefined") {
+            alert("当前使用的浏览器不支持签章操作，请使用IE浏览器");
         }
-        //读取签章数据
-        var seal;//签章的HEX编码
-        var sealArray = obj.readSeal();
-        sealArray = sealArray.toArray();
-        if (sealArray[0] == false) {
-            alert("读取签章数据失败！");
-            return false;
+        else {
+            var isKeyPlugIn = obj.isKeyPlugIn();
+            if (!isKeyPlugIn) {
+                alert("未插入签章需要的Key！");
+                return false;
+            }
+            //读取签章数据
+            var seal;//签章的HEX编码
+            var sealArray = obj.readSeal();
+            sealArray = sealArray.toArray();
+            if (sealArray[0] == false) {
+                alert("读取签章数据失败！");
+                return false;
+            }
+            var seal = sealArray[1];
+            //将HEX编码转成Base64
+            var signatureOfBase64 = global.hexToBase64(seal);
+            callback(signatureOfBase64);
         }
-        var seal = sealArray[1];
-        //将HEX编码转成Base64
-        var signatureOfBase64 = global.hexToBase64(seal);
-        callback(signatureOfBase64);
     },
     initSignatureData(data, callback) {
         global.createSign(JSON.stringify(data), callback);
@@ -875,7 +949,52 @@ var global = {
         callback();
     },
     printLog(context) {
-        // console.log(context);
+        // console.info(context);
+    },
+    websocket: {
+        url: "",
+        self: "",//websocket实例
+        lockReconnect: false,//避免重复连接
+        create(url, callback) {
+            global.websocket.url = url;
+            try {
+                global.websocket.self = new WebSocket(url);
+                global.websocket.initHandle(callback);
+            } catch (e) {
+                global.websocket.reconnect(url, callback);
+            }
+        },
+        initHandle(callback) {
+            global.websocket.self.onclose = function () {
+                global.printLog("websocket close on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+                global.websocket.reconnect(global.websocket.url, callback);
+            };
+            global.websocket.self.onerror = function () {
+                global.printLog("websocket error on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+                global.websocket.reconnect(global.websocket.url, callback);
+            };
+            global.websocket.self.onopen = function () {
+                //心跳检测重置
+                heartCheck.reset().start();
+                global.printLog("websocket open on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+            };
+            global.websocket.self.onmessage = function (event) {
+                //如果获取到消息，心跳检测重置
+                //拿到任何消息都说明当前连接是正常的
+                heartCheck.reset().start();
+                global.printLog("websocket message on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+                callback(event);
+            }
+        },
+        reconnect(url, callback) {
+            if (global.websocket.lockReconnect) return;
+            global.websocket.lockReconnect = true;
+            //没连接上会一直重连，设置延迟避免请求过多
+            setTimeout(function () {
+                global.websocket.create(url, callback);
+                global.websocket.lockReconnect = false;
+            }, 500);
+        }
     }
 }
 
@@ -931,5 +1050,28 @@ Date.prototype.Format = function (fmt) { //author: meizz
 String.prototype.Format = function () {
     if (this.length === 0) {
         return "";
+    }
+}
+
+var heartCheck = {
+    timeout: 30000,//30秒
+    timeoutObj: null,
+    serverTimeoutObj: null,
+    reset: function () {
+        clearTimeout(this.timeoutObj);
+        clearTimeout(this.serverTimeoutObj);
+        return this;
+    },
+    start: function () {
+        var self = this;
+        this.timeoutObj = setTimeout(function () {
+            //这里发送一个心跳，后端收到后，返回一个心跳消息，
+            //onmessage拿到返回的心跳就说明连接正常
+            global.websocket.self.send("HeartBeat");
+            global.printLog("Sending On " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+            self.serverTimeoutObj = setTimeout(function () {//如果超过一定时间还没重置，说明后端主动断开了
+                global.websocket.self.close();//如果onclose会执行reconnect，我们执行ws.close()就行了.如果直接执行reconnect 会触发onclose导致重连两次
+            }, self.timeout)
+        }, this.timeout)
     }
 }

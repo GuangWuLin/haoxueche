@@ -56,12 +56,20 @@ const router = new VueRouter({
 const store = new Vuex.Store({
   state: {
     count: 0,
+    department: {},
+    collapsed: false,
+    tranningPicture: [],
     user: JSON.parse(sessionStorage.getItem("user")),
-    department: {}
   },
   mutations: {
     increment(state) {
       state.count++
+    },
+    change(state, value) {
+      state.collapsed = value;
+    },
+    tranningPicture(state, value) {
+      state.tranningPicture = value;
     }
   }
 });

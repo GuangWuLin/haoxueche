@@ -1,7 +1,7 @@
 <template>
     <section v-loading="pageLoading">
         <el-row>
-            <el-col :span="14">
+            <el-col :span="13">
                 <el-radio-group v-model="rechargeType" @change="rechargeTypeChange">
                     <el-radio-button label="充学费"></el-radio-button>
                     <el-radio-button label="退学费"></el-radio-button>
@@ -9,22 +9,22 @@
                     <el-radio-button label="退学时"></el-radio-button>
                 </el-radio-group>
             </el-col>
-            <el-col :span="8" class="right t-right">
+            <el-col :span="10" class="right t-right">
                 <el-form :inline="true" :model="filters">
-                    <el-form-item v-show="rechargeType==='充学费'">
-                        <el-input class="search-input mr40" v-model="filters.schoolFee.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
+                    <el-form-item v-if="rechargeType==='充学费'">
+                        <el-input class="search-input mr20" v-model="filters.schoolFee.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
-                    <el-form-item v-show="rechargeType==='退学费'">
-                        <el-input class="search-input mr40" v-model="filters.withdrawalExpenses.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
+                    <el-form-item v-if="rechargeType==='退学费'">
+                        <el-input class="search-input mr20" v-model="filters.withdrawalExpenses.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
-                    <el-form-item v-show="rechargeType==='充学时'">
-                        <el-input class="search-input mr40" v-model="filters.timeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
+                    <el-form-item v-if="rechargeType==='充学时'">
+                        <el-input class="search-input mr20" v-model="filters.timeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
-                    <el-form-item v-show="rechargeType==='退学时'">
-                        <el-input class="search-input mr40" v-model="filters.withdrawalTimeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
+                    <el-form-item v-if="rechargeType==='退学时'">
+                        <el-input class="search-input mr20" v-model="filters.withdrawalTimeOfSchooling.keyword" placeholder="输入支付人电话号码" icon="search" :on-icon-click="queryRecharge"></el-input>
                         <el-button type="primary" class="right">导出表格</el-button>
                     </el-form-item>
                 </el-form>
@@ -35,7 +35,7 @@
             <el-col :span="24" class="toolbar">
                 <!--列表-->
                 <el-table :data="filters.schoolFee.data" @row-click="handleRowClick">
-                    <el-table-column prop="costNo" label="订单编号">
+                    <el-table-column prop="costNo" label="订单编号" width="190">
                     </el-table-column>
                     <el-table-column prop="title" label="订单标题">
                     </el-table-column>
@@ -45,9 +45,9 @@
                     </el-table-column>
                     <el-table-column prop="studentPhone" label="学员电话">
                     </el-table-column>
-                    <el-table-column prop="comments" label="订单备注">
+                    <el-table-column prop="comments" label="订单备注" width="150" :show-overflow-tooltip="true">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter">
+                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter" width="180">
                     </el-table-column>
                 </el-table>
                 <!--工具条-->
@@ -60,7 +60,7 @@
             <el-col :span="24" class="toolbar">
                 <!--列表-->
                 <el-table :data="filters.withdrawalExpenses.data" @row-click="handleRowClick">
-                    <el-table-column prop="costNo" label="订单编号">
+                    <el-table-column prop="costNo" label="订单编号" width="190">
                     </el-table-column>
                     <el-table-column prop="title" label="订单标题">
                     </el-table-column>
@@ -70,9 +70,9 @@
                     </el-table-column>
                     <el-table-column prop="studentPhone" label="学员电话">
                     </el-table-column>
-                    <el-table-column prop="comments" label="订单备注">
+                    <el-table-column prop="comments" label="订单备注" width="150" :show-overflow-tooltip="true">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter">
+                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter" width="180">
                     </el-table-column>
                 </el-table>
                 <!--工具条-->
@@ -85,7 +85,7 @@
             <el-col :span="24" class="toolbar">
                 <!--列表-->
                 <el-table :data="filters.timeOfSchooling.data" @row-click="handleRowClick">
-                    <el-table-column prop="costNo" label="订单编号">
+                    <el-table-column prop="costNo" label="订单编号" width="190">
                     </el-table-column>
                     <el-table-column prop="title" label="订单标题">
                     </el-table-column>
@@ -95,11 +95,11 @@
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="studentPhone" label="学员电话">
+                    <el-table-column prop="studentPhone" label="学员电话" width="150">
                     </el-table-column>
-                    <el-table-column prop="comments" label="订单备注">
+                    <el-table-column prop="comments" label="订单备注" width="150" :show-overflow-tooltip="true">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter">
+                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter" width="180">
                     </el-table-column>
                 </el-table>
                 <!--工具条-->
@@ -112,7 +112,7 @@
             <el-col :span="24" class="toolbar">
                 <!--列表-->
                 <el-table :data="filters.withdrawalTimeOfSchooling.data" @row-click="handleRowClick">
-                    <el-table-column prop="costNo" label="订单编号">
+                    <el-table-column prop="costNo" label="订单编号" width="190">
                     </el-table-column>
                     <el-table-column prop="title" label="订单标题">
                     </el-table-column>
@@ -122,11 +122,11 @@
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
-                    <el-table-column prop="studentPhone" label="学员电话">
+                    <el-table-column prop="studentPhone" label="学员电话" width="150">
                     </el-table-column>
-                    <el-table-column prop="comments" label="订单备注">
+                    <el-table-column prop="comments" label="订单备注" width="150" :show-overflow-tooltip="true">
                     </el-table-column>
-                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter">
+                    <el-table-column prop="gmtCreate" label="操作日期" :formatter="formatter" width="180">
                     </el-table-column>
                 </el-table>
                 <!--工具条-->

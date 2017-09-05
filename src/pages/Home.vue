@@ -6,25 +6,27 @@
         <span style="font-size:1.2em;font-family:webfont">{{schoolName}}</span>
       </el-col>
       <el-col :span="12" class="userinfo">
-        <el-popover ref="msg-popover" placement="bottom-end" width="400" trigger="hover" :visible-arrow="false">
-          <p>【好学车】企业邮箱采购季大促，新购低至5折，还可参加满额抽奖和满返券，最高中iPhone6s，速抢</p>
+        <el-popover ref="msg-popover" placement="bottom-end" width="400" trigger="hover" :visible-arrow="false" :disabled="!messages.notice.length">
+          <a href="javascript:;" v-for="(item,index) in messages.notice" v-if="index<5" @click="()=>{messages.notice=[];addTab($router.options.routes[14].children[0]);}">{{item.title}}</a>
         </el-popover>
-        <el-popover ref="alarm-popover" placement="bottom-end" width="400" trigger="hover" :visible-arrow="false">
-          <p>［会员限时满返权益］消耗越多返的越多，最高可返1000元！倒计时：5天！</p>
+        <el-popover ref="alarm-popover" placement="bottom-end" width="400" trigger="hover" :visible-arrow="false" :disabled="!messages.warning.length">
+          <a href="javascript:;" v-for="(item,index) in messages.warning" v-if="index<5" @click="()=>{messages.warning=[];addTab($router.options.routes[14].children[1]);}">{{item.title}}</a>
         </el-popover>
         <el-menu mode="horizontal" @select="handleSelect" unique-opened>
-          <el-menu-item index="7-0" v-popover:msg-popover>
+          <el-menu-item index="14-0" v-popover:msg-popover>
             消息
+            <el-badge class="mark" :value="messages.notice.length" :max="5" />
             <span class="glyph-icon icon-xiaoxi"></span>
           </el-menu-item>
-          <el-menu-item index="9-0" v-popover:alarm-popover>
+          <el-menu-item index="14-1" v-popover:alarm-popover>
             报警
+            <el-badge class="mark" :value="messages.warning.length" :max="5" />
             <span class="glyph-icon icon-baojing"></span>
           </el-menu-item>
-          <el-submenu index="0">
+          <el-submenu index="0-0">
             <template slot="title">个人中心</template>
             <el-menu-item index="0-1">上传财务公章</el-menu-item>
-            <el-menu-item index="0-0">退出</el-menu-item>
+            <el-menu-item index="0-2">退出</el-menu-item>
           </el-submenu>
           <!--<el-menu-item index="3"><a href="javascript:">个人中心</a></el-menu-item>-->
         </el-menu>
@@ -82,7 +84,7 @@
         </div>
       </section>
     </el-col>
-    <!--支付密码（编辑）-->
+    <!--上传公章-->
     <el-dialog title="上传公章" v-model="chapterFormVisible" :close-on-click-modal="false" custom-class="chapter-form" size="tiny">
       <el-upload class="avatar-uploader mt20" :action="fileUploadAction" :show-file-list="false" :on-success="handleAvatarScucess" :before-upload="beforeAvatarUpload" style="margin-left:45px;margin-top:30px;">
         <img v-if="chapterPic" :src="chapterPic" class="avatar">
@@ -103,14 +105,18 @@ export default {
     return {
       authority: [],
       routerPath: [],
-      schoolCode: 0,
       currentTab: "",
+      messages: {
+        notice: [],
+        warning: []
+      },
       tabs: [],
       tabIndex: 0,
       closable: true,
       collapsed: false,
       chapterFormVisible: false,
-      fileUploadAction: request.baseUrl + "/file/uploadFile",
+      fileUploadAction: sessionStorage.getItem("baseUrl") + "/file/uploadFile",
+      userId: JSON.parse(sessionStorage.getItem("user")).userId,
       schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
       schoolName: JSON.parse(sessionStorage.getItem("user")).schoolName,
       chapterPic: JSON.parse(sessionStorage.getItem("user")).financialChapter
@@ -206,6 +212,7 @@ export default {
     //默认选项卡
     defaultShow() {
       let routes = this.$router.options.routes;
+      // console.warn(routes);
       for (var item in routes) {
         if (!routes[item].hidden) {
           if (item === "8") {
@@ -218,22 +225,29 @@ export default {
       }
     },
     handleSelect(keyPath) {
-      var key = keyPath.split("-")[1];
-      if (key === "0") {
-        sessionStorage.clear();
-        this.$router.replace({ path: "/" });
-      }
-      else if (key === "1") {
-        this.chapterFormVisible = true;
+      var key = keyPath.split("-")[0];
+      var children = keyPath.split("-")[1];
+      if (key == 0) {
+        if (children == 1) {
+          this.chapterFormVisible = true;
+        }
+        else if (children == 2) {
+          sessionStorage.clear();
+          this.$router.replace({ path: "/" });
+        }
       }
       else {
-        var keyPath = keyPath.split("-")[1];
-        let routes = this.$router.options.routes;
-        this.addTab(routes[key].children[keyPath]);
+        if (children == 0) {
+          this.messages.notice = [];
+        }
+        else {
+          this.messages.warning = [];
+        }
+        this.addTab(this.$router.options.routes[key].children[children]);
       }
     },
     checkRole(roleName) {
-      //return true;
+      // return true;
       let results = false;
       let authority = this.authority;
       for (let item in authority) {
@@ -247,6 +261,7 @@ export default {
     //折叠导航栏
     collapse: function () {
       this.collapsed = !this.collapsed;
+      this.$store.commit("change", this.collapsed);
     },
     showMenu(i, status) {
       this.$refs.menuCollapsed.getElementsByClassName('submenu-hook-' + i)[0].style.display = status ? 'block' : 'none';
@@ -269,6 +284,7 @@ export default {
       }
       return validateType && isLt2M;
     },
+    //上传驾校公章
     saveChapter() {
       let para = {
         financialChapter: this.chapterPic,
@@ -283,6 +299,68 @@ export default {
           this.$message.error("财务公章上传失败，原因：" + res.message);
         }
       });
+    },
+    //查询消息（websocket）
+    queryMessagesByWS() {
+      // global.websocket.create("ws://" + sessionStorage.getItem('baseUrl').split("//")[1] + "/websocket/school/notice/admin/" + this.userId + "/" + JSON.parse(sessionStorage.getItem("user")).authorization, (event) => {
+      //   global.printLog("websocket get message");
+      //   let data = eval("(" + event.data + ")");
+      //   if (data.type === "WARNING") {
+      //     this.messages.warning.unshift({
+      //       title: data.title
+      //     });
+      //   }
+      //   else if (data.type === "NOTICE") {
+      //     this.messages.notice.unshift({
+      //       title: data.title
+      //     });
+      //   }
+      // });
+      let socket = new WebSocket("ws://" + sessionStorage.getItem('baseUrl').split("//")[1] + "/websocket/school/notice/admin/" + this.userId + "/" + JSON.parse(sessionStorage.getItem("user")).authorization);
+      socket.onopen = (event) => {
+        global.printLog("websocket open on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+        socket.onmessage = (event) => {
+          global.printLog("websocket message on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+          let data = eval("(" + event.data + ")");
+          if (data.type === "WARNING") {
+            this.messages.warning.unshift({
+              title: data.title
+            });
+          }
+          else if (data.type === "NOTICE") {
+            this.messages.notice.unshift({
+              title: data.title
+            });
+          }
+        }
+      }
+      //绑定关闭事件
+      socket.onclose = (event) => {
+        global.printLog("websocket close on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+      };
+      //出现错误的时候的方法
+      socket.onerror = (event) => {
+        console.log(event);
+        global.printLog("websocket error on " + new Date().Format("yyyy-MM-dd HH:mm:ss"));
+      };
+    },
+    //查询训练场图层
+    queryTranning3D() {
+      request.public.queryTranning3DPicture([this.schoolCode, 1, 100]).then((res) => {
+        if (res.success) {
+          let tranningPic = [];
+          if (res.object) {
+            for (let item in res.object.list) {
+              tranningPic.push({
+                upLeft: res.object.list[item].upLeft,
+                downRight: res.object.list[item].downRight,
+                picUrl: res.object.list[item].picUrl
+              });
+            }
+          }
+          this.$store.commit("tranningPicture", tranningPic);
+        }
+      });
     }
   },
   created() {
@@ -291,12 +369,13 @@ export default {
     for (let item in authority) {
       this.authority.push(authority[item].functionName);
     }
+    this.queryTranning3D();
+    this.queryMessagesByWS();
   },
   mounted: function () {
-    console.log(JSON.parse(sessionStorage.getItem("user")).financialChapter);
-    //console.log(this.$route.matched[0]);
-    //console.log(this.$route);
+    global.printLog(JSON.parse(sessionStorage.getItem("user")).financialChapter);
     this.addTab(this.$route);
+    sessionStorage.setItem("collapsed", this.collapsed);
     //this.defaultShow();
   }
 }
@@ -459,7 +538,7 @@ export default {
     section.main-content {
       flex: 1;
       background: #FFF;
-      overflow-y: scroll; // position: absolute;
+      overflow-y: auto; // position: absolute;
       // right: 0px;
       // top: 0px;
       // bottom: 0px;
@@ -558,6 +637,56 @@ export default {
   }
 }
 
+.el-popover {
+  padding: 0;
+  >a {
+    display: block;
+    padding: 10px 0;
+    text-indent: 10px;
+    &:hover {
+      background: #d1dbe5;
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -626,6 +755,45 @@ export default {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* 自定义重写element pager样式 */
 
 .el-pager li.active {
@@ -653,7 +821,6 @@ export default {
 }
 
 .glyph-icon {
-  display: none;
   font-family: "iconfont"!important;
   margin-right: 10px;
   opacity: 1;
@@ -802,12 +969,20 @@ export default {
   content: "\e677"
 }
 
+.icon-xiaoxizhongxin:before {
+  content: "\e61f"
+}
+
 .icon-xiaoxi:before {
   content: "\e60c"
 }
 
 .icon-baojing:before {
   content: "\e636"
+}
+
+.icon-gonggao:before {
+  content: "\e61e"
 }
 
 .icon-empty:before {
@@ -820,6 +995,10 @@ export default {
 
 .icon-paizhao:before {
   content: "\e74b";
+}
+
+.icon-shipin:before {
+  content: "\e61d";
 }
 
 .icon-baobiao:before {
@@ -884,6 +1063,62 @@ export default {
 
 .icon-dingzhihua:before {
   content: "\e621";
+}
+
+.icon-ie-broswer:before {
+  content: "\e7f5";
+}
+
+.icon-sougou-broswer:before {
+  content: "\e61c";
+}
+
+.icon-360-broswer:before {
+  content: "\e643";
+}
+
+.icon-kaoshizhongxin:before {
+  content: "\e626";
+}
+
+.icon-chengjichaxun:before {
+  content: "\e68a";
+}
+
+.icon-qingjiashenhe:before {
+  content: "\e648";
+}
+
+.icon-jieduan-baobiao:before {
+  content: "\e623";
+}
+
+.icon-xianluguanli:before {
+  content: "\e634";
+}
+
+.icon-xianluliebiao:before {
+  content: "\e689";
+}
+
+.icon-yuyuechaxun:before {
+  content: "\e625";
+}
+
+.icon-kaoshichaxun:before {
+  content: "\e631";
+}
+
+.icon-genzong:before {
+  content: "\e61a";
+}
+
+.icon-dingwei:before {
+  content: "\e6d9";
+}
+
+.icon-cheguanzhuangtai:before {
+  content: "\e63a";
 }
 </style>
 
@@ -993,8 +1228,12 @@ p.group-title {
   }
 }
 
+.photograph .el-dialog--tiny {
+  width: 500px;
+}
+
 .photograph .el-dialog--small {
-  width: 800px; // height: 500px;
+  width: 900px;
 }
 
 .detailForm {
@@ -1004,6 +1243,7 @@ p.group-title {
     border-radius: 100%;
     position: absolute;
     top: 17px;
+    cursor: pointer;
   }
   span.name {
     position: absolute;
@@ -1106,7 +1346,7 @@ p.group-title {
         }
       }
     }
-    i {
+    i:not(.el-icon) {
       font-size: 30px;
       line-height: normal;
     }
@@ -1180,5 +1420,14 @@ p.group-title {
 
 .el-input__icon.is-clickable:hover {
   color: #FFF;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #F12424;
+  border-radius: 100%;
+  display: inline-block;
+  margin-right: 2px;
 }
 </style>

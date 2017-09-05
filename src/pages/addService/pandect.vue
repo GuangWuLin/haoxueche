@@ -1,25 +1,27 @@
 <template>
     <section class="services">
         <el-row>
-            <a href="javascript:" v-for="item in pandectList" @click="detailClick(item.id,item.status,item.type)">
-                <el-card class="box-card">
-                    <div :class="item.type">
+            <a class="box-card" href="javascript:" v-for="item in pandectList" @click="detailClick(item.id,item.status,item.type)">
+                <div class="card-inner">
+                    <div class="icon">
                         <em class="glyph-icon"></em>
                         <p>
                             <span>{{item.name}}</span>
                         </p>
                     </div>
-                    <div class="content">
-                        <p class="description">{{item.description}}</p>
-                        <p class="operation">
-                            <el-button :plain="true" @click.stop="handleApply">{{item.online?"前往开通":"暂未开放"}}</el-button>
+                    <div class="description">
+                        <p class="innner">
+                            {{item.description}}
                         </p>
+                        <div class="operation">
+                            <el-button :plain="true" @click.stop="handleApply(item.type)">{{item.online?"前往开通":"暂未开放"}}</el-button>
+                        </div>
                     </div>
-                </el-card>
+                </div>
             </a>
         </el-row>
         <!--详情页面-->
-        <el-dialog title="详情页面" v-model="detail" :close-on-click-modal="false" size="full">
+        <el-dialog title="开通详情" v-model="detail" :close-on-click-modal="false" size="full">
             <el-row class="mb20 mt20">
                 <el-col :span="17">
                     <el-radio-group v-model="paymentType" @change="paymentTypeChange">
@@ -32,7 +34,7 @@
                 </el-col>
                 <el-col :span="6">
                     <el-button :disabled="(pandectDetail.status!='normal'?true:false)" type="primary" size="large">已开通</el-button>
-                    <el-button :disabled="(pandectDetail.status=='normal'?true:false)" @click="handleApply" type="primary" size="large">立即申请</el-button>
+                    <el-button :disabled="(pandectDetail.status=='normal'?true:false)" @click="handleApply(pandectDetail.type)" type="primary" size="large">立即申请</el-button>
                 </el-col>
             </el-row>
             <el-row v-show="paymentType==='产品介绍'">
@@ -100,7 +102,7 @@ export default {
             pandectDetail: { //详情页
                 id: "",
                 status: "",
-                type: "",
+                type: "theory_education",
 
             },
             applyCondition: {//申请表单
@@ -139,9 +141,10 @@ export default {
         paymentTypeChange() {
         },
         //点击申请
-        handleApply() {
+        handleApply(type) {
+            global.printLog(type);
             this.applyVisible = true;
-            this.applyCondition.type = this.pandectDetail.type;
+            this.applyCondition.type = type;
             this.applyCondition.contactPerson = "";
             this.applyCondition.email = "";
             this.applyCondition.qq = "";
@@ -177,65 +180,70 @@ export default {
     },
     mounted() {
         this.queryPandectList();
-    },
+    }
 }
 </script> 
 
 <style scope lang="scss">
 .services {
-    .box-card {
-        width: 222px;
-        height: 306px;
-        float: left;
-        cursor: pointer;
-        border-radius: 0;
-        box-shadow: 0 0 6px 0 rgba(0, 0, 0, .04);
-        border: 0;
+    a.box-card {
+        width: 220px;
         margin: 20px;
-        .theory_education {
-            background: #20A0FF;
-            border: 1px solid #20A0FF;
-            height: 110px;
-            text-align: center;
-            color: #FFF;
-            font-weight: 600;
-            font-family: "Arial";
-            font-size: 1.1em;
-            .glyph-icon {
-                float: none;
-                margin-top: 30px;
-                font-size: 2em;
-                margin-right: 0;
-                margin-bottom: 2px;
-            }
-            >em:before {
-                display: block;
-                content: "\e7b6";
-            }
-            >p {
-                display: block;
-            }
-        }
-        .el-card__body {
-            padding: 0;
-        }
-        .content {
-            border: 1px solid #E1E6EB;
-            border-top: 0;
-            height: 150px;
-            padding: 20px;
+        float: left;
+        .card-inner {
+            width: 220px;
             position: relative;
-            .description {
-                color: #61646D;
-            }
-            .operation {
+            box-shadow: 0 0 6px 0 rgba(0, 0, 0, .04);
+            .icon {
+                width: 220px;
+                height: 112px;
+                display: table-cell;
+                vertical-align: middle;
                 text-align: center;
-                margin-top: 100px;
-                .el-button {
-                    padding: 8px 15px;
-                    color: #20A0FF;
-                    border: 1px solid #20A0FF;
-                    border-radius: 2px;
+                background-color: #20A0FF;
+                border: 1px solid #20A0FF;
+                color: #fff;
+                .glyph-icon {
+                    float: none;
+                    font-size: 2em;
+                    margin-right: 0;
+                    margin-bottom: 2px;
+                }
+                >em:before {
+                    display: block;
+                    content: "\e7b6";
+                }
+                >p {
+                    display: block;
+                    font-weight: 600;
+                    font-family: "Arial";
+                    font-size: 1.1em;
+                }
+            }
+            .description {
+                position: relative;
+                top: 0;
+                bottom: 50px;
+                border: 1px solid #E1E6EB;
+                .innner {
+                    margin: 20px;
+                    overflow: auto;
+                    word-wrap: break-word;
+                    height: 100px;
+                    color: #61646D;
+                    font-size: 1.13em;
+                }
+                .operation {
+                    width: 100%;
+                    height: 40px;
+                    text-align: center;
+                    margin-bottom: 10px;
+                    .el-button {
+                        padding: 8px 15px;
+                        color: #20A0FF;
+                        border: 1px solid #20A0FF;
+                        border-radius: 2px;
+                    }
                 }
             }
         }

@@ -30,37 +30,37 @@
                     </el-form-item>
                 </el-form>
                 <!--列表-->
-                <el-table :data="pendingReportRecord.data" @selection-change="handleSelectionChange" @row-click="handleRowClick">
+                <el-table :data="pendingReportRecord.data" @selection-change="handleSelectionChange">
                     <el-table-column type="selection" width="35" :selectable="handleSelecTableChange">
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">
                     </el-table-column>
                     <el-table-column prop="carTypeName" label="车型">
                     </el-table-column>
-                    <el-table-column prop="needfulTime" label="补学学时(分钟)">
+                    <el-table-column prop="needfulTime" label="补学学时/分" width="110">
                     </el-table-column>
-                    <el-table-column prop="needStudy" label="大纲要求(分钟)">
+                    <el-table-column prop="needStudy" label="大纲要求/分" width="110">
                     </el-table-column>
-                    <el-table-column prop="totalTime" label="培训学时(分钟)">
+                    <el-table-column prop="totalTime" label="培训学时/分" width="110">
                     </el-table-column>
-                    <el-table-column prop="pendingReportTime" label="有效学时(分钟)">
+                    <el-table-column prop="pendingReportTime" label="有效学时/分" width="110">
                         <template scope="scope">
                             {{scope.row.pendingReportTime}}
                             <span style="color:#1D8CE0;" v-if="scope.row.needfulTime>0">(补学)</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="mileage" label="里程(公里)" :formatter="formatter">
+                    <el-table-column prop="mileage" label="里程/公里" :formatter="formatter" width="110">
                     </el-table-column>
-                    <el-table-column label="操作">
-                        <template scope="scope">
-                            <el-button type="text" size="small" @click.stop="queryStageTrainRecord(scope.row)">培训记录表</el-button>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="备注" width="180">
+                    <el-table-column label="备注" width="150">
                         <template scope="scope">
                             <el-tag v-if="scope.row.signStatus!=='pending'" type="danger">
                                 {{scope.row.signStatus==='invalid_total'?'有效学时没有达到':scope.row.signStatus==='invalid_vehicle'?'实操学时没有达到':'课堂学时没有达到'}}
                             </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作">
+                        <template scope="scope">
+                            <el-button type="text" size="small" @click.stop="queryStageTrainRecord(scope.row)">培训记录表</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -84,7 +84,7 @@
                     </el-form-item>
                 </el-form>
                 <!--列表-->
-                <el-table :data="stageRecordList.data" highlight-current-row @selection-change="handleSelectionChange" @row-click="handleRowClick">
+                <el-table :data="stageRecordList.data" highlight-current-row @selection-change="handleSelectionChange">
                     <el-table-column type="selection" width="35">
                     </el-table-column>
                     <el-table-column prop="studentName" label="学员">

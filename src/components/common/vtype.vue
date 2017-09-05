@@ -10,7 +10,7 @@
     import { request } from "../../api/api";
     import { global } from "../../assets/javascript/global";
     export default {
-        props: ["type", "tag"],//限制上传个数，上传文件列表
+        props: ["type", "tag",'rePull'],//限制上传个数，上传文件列表
         data() {
             return {
                 t: this.type,
@@ -22,12 +22,16 @@
         methods: {
             //获取车型
             getCarType() {
+                if(this.rePull === 'search') {
+                    this.t = this.type;
+                    return;   
+                }
                 request.public.queryCarType().then((res) => {
                     if (res.success === true) {
                         this.vTypeData = [];
                         let data = res.object;
                         this.vTypeData.push({
-                            label: "全部",
+                            label: "全部车型",
                             value: "0"
                         });
                         for (let item in data) {
@@ -52,6 +56,11 @@
             }
         },
         mounted: function () {
+            let sessionData = sessionStorage.getItem('allConditions');
+            if(sessionData !== null) {
+                let obj = JSON.parse(sessionData);
+                this.vTypeData = obj.carModels;
+            }
             setTimeout(()=> {
                 this.getCarType();
             }, 300);

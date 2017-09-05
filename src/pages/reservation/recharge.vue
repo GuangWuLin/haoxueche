@@ -4,32 +4,64 @@
         <el-col :span="24" class="toolbar">
             <el-form :inline="true" :model="recharges">
                 <el-form-item>
-                    <el-input class="search-input mr40" v-model="recharges.filters.keyword" placeholder="输入学员电话" icon="search" :on-icon-click="queryRechargeStu"></el-input>
+                    <el-input class="search-input mr40" v-model="recharges.filters.keyword" placeholder="输入学员电话或姓名搜索" icon="search" :on-icon-click="queryRechargeStu"></el-input>
                 </el-form-item>
             </el-form>
             <!--列表-->
             <el-table :data="recharges.data">
-                <el-table-column prop="studentName" label="姓名">
+                <el-table-column type="expand">
+                    <template scope="scope">
+                        <el-form label-position="left" inline class="table-expand">
+                            <el-form-item label="姓名">
+                                <span>{{ scope.row.studentName }}</span>
+                            </el-form-item>
+                            <el-form-item label="身份证">
+                                <span>{{ scope.row.cardNo }}</span>
+                            </el-form-item>
+                            <el-form-item label="电话">
+                                <span>{{ scope.row.phone }}</span>
+                            </el-form-item>
+                            <el-form-item label="预约学员">
+                                <span>{{ scope.row.isAppointment }}</span>
+                            </el-form-item>
+                            <el-form-item label="预约类型">
+                                <span>{{ scope.row.appointmentType }}</span>
+                            </el-form-item>
+                            <el-form-item label="剩余费用/元">
+                                <span>{{ scope.row.costBalance }}</span>
+                            </el-form-item>
+                            <el-form-item label="科二剩余/分">
+                                <span>{{ scope.row.stage2Time }}</span>
+                            </el-form-item>
+                            <el-form-item label="科三剩余/分">
+                                <span>{{ scope.row.stage3Time }}</span>
+                            </el-form-item>
+                            <el-form-item label="科二已学/分">
+                                <span>{{ scope.row.has2Time }}</span>
+                            </el-form-item>
+                            <el-form-item label="科三已学/分">
+                                <span>{{ scope.row.has3Time }}</span>
+                            </el-form-item>
+                        </el-form>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="studentName" label="姓名" :show-overflow-tooltip="true">
                 </el-table-column>
                 <el-table-column prop="cardNo" label="身份证" width="200">
                 </el-table-column>
-                <el-table-column prop="phone" label="电话">
+                <el-table-column prop="phone" label="电话" width="160">
                 </el-table-column>
-                <el-table-column prop="isAppointment" label="预约学员" :formatter="formatter">
-                </el-table-column>
-                <el-table-column prop="appointmentType" label="预约类型" :formatter="formatter">
+                <!--<el-table-column prop="isAppointment" label="预约学员">
+                </el-table-column>-->
+                <el-table-column prop="appointmentType" label="预约类型" width="90">
                 </el-table-column>
                 <el-table-column prop="costBalance" label="剩余费用/元">
                 </el-table-column>
-                <el-table-column prop="stage2Time" label="科二剩余/分">
+                <el-table-column prop="twoTimes" label="科二已学/剩余">
                 </el-table-column>
-                <el-table-column prop="stage3Time" label="科三剩余/分">
+                <el-table-column prop="threeTimes" label="科三已学/剩余">
                 </el-table-column>
-                <el-table-column prop="has2Time" label="科二已学/分">
-                </el-table-column>
-                <el-table-column prop="has3Time" label="科三已学/分">
-                </el-table-column>
-                <el-table-column label="操作" width="180">
+                <el-table-column label="操作" width="170">
                     <template scope="scope">
                         <el-tag v-if="scope.row.isAppointment===0" type="gray">传统学员无此项操作</el-tag>
                         <div v-else>
@@ -215,14 +247,6 @@ export default {
         }
     },
     methods: {
-        formatter(row, column) {
-            if (column.property === "isAppointment") {
-                return row.isAppointment === 1 ? "是" : "否";
-            }
-            else if (column.property === "appointmentType") {
-                return global.enums.appointmentType[row.appointmentType];
-            }
-        },
         queryRechargeStu() {
             this.pageLoading = true;
             let para = [this.schoolCode, this.recharges.filters.keyword, this.recharges.page, this.pageSize];
@@ -230,9 +254,8 @@ export default {
                 request.appointment.recharge.queryStudent(para).then((res) => {
                     if (res.success) {
                         this.pageLoading = false;
-                        let data = res.object;
-                        this.recharges.total = data.num;
-                        this.recharges.data = data.list;
+                        this.recharges.total = res.object.num;
+                        this.recharges.data = res.object.list;
                         for (let item in this.recharges.data) {
                             if (this.recharges.data[item].appointmentType === 10) {
                                 this.recharges.data[item].deductionShow = true;
@@ -240,6 +263,8 @@ export default {
                             else {
                                 this.recharges.data[item].buckleShow = true;
                             }
+                            this.recharges.data[item].isAppointment = (this.recharges.data[item].isAppointment === 1 ? "是" : "否");
+                            this.recharges.data[item].appointmentType = global.enums.appointmentType[this.recharges.data[item].appointmentType];
                         }
                     }
                 });

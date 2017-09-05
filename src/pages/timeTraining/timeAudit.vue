@@ -15,28 +15,22 @@
                         <el-date-picker type="daterange" placeholder="选择日期范围" v-model="filters.dateRange" @change="getTimes" format="yyyy-MM-dd" :editable="false">
                         </el-date-picker>
                         <el-input class="search-input mr40" placeholder="输入学员姓名" icon="search" :on-icon-click="getTimes" v-model="filters.keyWord"></el-input>
-                        <!--<el-button type="primary" @click="" class="mr10">上传监管平台</el-button>
-                                <el-button type="primary" @click="">导出数据</el-button>-->
                     </el-form-item>
                 </el-form>
             </el-col>
             <!--列表-->
-            <el-table :data="times.data" highlight-current-row @row-click="rowClick">
+            <el-table :data="times.data" highlight-current-row @row-click="handleRowClick">
                 <el-table-column type="selection" width="35">
                 </el-table-column>
                 <el-table-column prop="studentName" label="学员">
                 </el-table-column>
                 <el-table-column prop="teacherName" label="教练">
                 </el-table-column>
-                <el-table-column prop="cardNo" label="教练车">
+                <el-table-column prop="cardNo" label="教练车" width="120">
                 </el-table-column>
                 <el-table-column prop="stageName" label="培训部分">
                 </el-table-column>
-                <el-table-column prop="trainingTimes" label="培训时段" width="220">
-                </el-table-column>
-                <el-table-column prop="appointmentTimes" label="预约时段" width="220">
-                </el-table-column>
-                <el-table-column prop="allStudyMin" label="培训学时">
+                <el-table-column prop="trainingTimes" label="培训时段" width="260">
                 </el-table-column>
                 <el-table-column label="初审有效学时" width="120">
                     <template scope="scope">
@@ -44,8 +38,6 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="effectiveProportion" label="有效占比">
-                </el-table-column>
-                <el-table-column prop="mileage" label="培训里程">
                 </el-table-column>
                 <el-table-column prop="isUpload" label="备案状态" :formatter="formatter">
                 </el-table-column>
@@ -55,7 +47,7 @@
             </el-pagination>
         </el-row>
         <!--电子教学日志详情-->
-        <el-dialog title="电子教学日志详情" v-model="times.detailsFormVisible" :close-on-click-modal="false" size="full">
+        <el-dialog title="电子教学日志详情" v-model="times.detailsFormVisible" :close-on-click-modal="false" size="full" @close="handleClose">
             <!-- 基本信息 -->
             <div class="basic mt0 pt0">
                 <el-form v-model="times.detailsForm">
@@ -78,7 +70,7 @@
                     </el-row>
                     <el-row>
                         <el-col :span="7">
-                            <span>培训里程：{{times.detailsForm.mileage}}</span>
+                            <span>培训里程：{{times.detailsForm.mileage===0?times.detailsForm.mileage:times.detailsForm.mileage/1000}}公里</span>
                         </el-col>
                         <el-col :span="7">
                             <span>课程方式：{{times.detailsForm.subjectTypeName}}</span>
@@ -156,14 +148,48 @@
                     <swiper :options="swiperOptionPhoto">
                         <swiper-slide v-for="item in classRecordPhoto.data">
                             <img v-bind:src="item.photosUrl" class="photo" />
-                            <p class="t-center mt5">{{item.photosTypeText}}</p>
+                            <p class="t-center mt5">
+                                {{item.photosTypeText}}
+                                <i v-if="item.auditScore!==-1" :class="[item.auditScore>=70?'el-icon-check':'el-icon-close']"></i>
+                            </p>
                             <p class="t-center mt5">{{item.photoTime}}</p>
                         </swiper-slide>
                         <div class="swiper-button-prev" slot="button-prev"></div>
                         <div class="swiper-button-next" slot="button-next"></div>
                     </swiper>
-                    <el-table :data="classRecordMin.data" v-show="times.detailsForm.subjectType===1">
-                        <el-table-column prop="studyTime" label="记录时间" width="180">
+                    <el-button type="primary" v-show="times.detailsForm.subjectType===1 && times.showList==false" @click="getClassRecordMin" :loading="times.btnLoading">查看学时分钟</el-button>
+                    <el-table :data="classRecordMin.data" v-show="times.detailsForm.subjectType===1 && times.showList==true">
+                        <el-table-column type="expand">
+                            <template scope="scope">
+                                <el-form label-position="left" inline class="table-expand">
+                                    <el-form-item label="记录时间">
+                                        <span>{{ scope.row.studyTime }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="最大速度(km/h)">
+                                        <span>{{ scope.row.maxSpeed }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="行驶记录速度(km/h)">
+                                        <span>{{ scope.row.recordSpeed }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="发动机转速(r/min)">
+                                        <span>{{ scope.row.engineSpeed }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="行驶里程(km)">
+                                        <span>{{ scope.row.minMileage }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="记录状态">
+                                        <span>{{ scope.row.state }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="审核结果">
+                                        <span>{{ scope.row.auditState }}</span>
+                                    </el-form-item>
+                                    <el-form-item label="初审原因">
+                                        <span>{{ scope.row.remark }}</span>
+                                    </el-form-item>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="studyTime" label="时间" width="190">
                         </el-table-column>
                         <el-table-column prop="maxSpeed" label="最大速度(km/h)">
                         </el-table-column>
@@ -171,19 +197,18 @@
                         </el-table-column>
                         <el-table-column prop="engineSpeed" label="发动机转速(r/min)">
                         </el-table-column>
-                        <el-table-column prop="minMileage" label="行驶里程(km)">
+                        <el-table-column prop="minMileage" label="行驶里程(km)" width="140">
                         </el-table-column>
-                        <el-table-column prop="state" label="记录状态">
-                        </el-table-column>
-                        <el-table-column prop="auditState" label="审核结果">
-                        </el-table-column>
-                        <el-table-column prop="remark" label="初审原因">
+                        <el-table-column prop="auditState" label="审核结果" width="100">
                         </el-table-column>
                     </el-table>
                 </div>
                 <div v-if="radioType==='轨迹'">
                     <div id="mapContainer" class="mt20"></div>
                 </div>
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click.native="times.detailsFormVisible = false" size="large">关闭</el-button>
             </div>
         </el-dialog>
     </section>
@@ -246,10 +271,13 @@ export default {
                         lowestTime: ""
                     }]
                 },
+                showList: false,
+                btnLoading: false,
                 detailsFormVisible: false
             },
             classRecordMin: {
-                data: []
+                data: [],
+                para: []
             },
             classRecordPhoto: {
                 data: []
@@ -257,7 +285,6 @@ export default {
             classRecordGPS: {
                 data: []
             },
-            monitorType: "实时监控",
             radioType: "照片",
             swiperOptionPhoto: {
                 nextButton: '.swiper-button-next',
@@ -284,7 +311,6 @@ export default {
             this.times.para[4] = this.filters.keyWord;
             this.times.para[5] = this.times.page;
             this.times.para[6] = global.pageSize;
-            global.printLog(JSON.stringify(this.times.para));
             setTimeout(() => {
                 request.timeTraining.timeAudit.query.list(this.times.para).then((res) => {
                     if (res.success) {
@@ -325,7 +351,6 @@ export default {
             let classRecordId = row.classRecordId;
             request.timeTraining.timeAudit.query.detail(classRecordId).then((res) => {
                 if (res.success) {
-                    global.printLog(res.object);
                     this.times.detailsForm = {
                         studentPhoto: res.object.studentPhoto,
                         studentName: res.object.studentName,
@@ -367,7 +392,6 @@ export default {
                         if (res.success) {
                             let data = res.object;
                             this.times.detailsForm.timeTracking = [];
-                            global.printLog(data);
                             for (let item in data) {
                                 this.times.detailsForm.timeTracking.push({
                                     lowestTime: data[item].lowestTime,
@@ -380,30 +404,34 @@ export default {
                     this.times.detailsFormVisible = true;
                 }
             });
-            this.getClassRecordMin([this.schoolCode, row.sim, row.classId, row.beginTime, row.endTime]);
             this.getClassRecordPhoto([this.schoolCode, row.sim, row.classId]);
+            this.classRecordMin.para = [this.schoolCode, row.sim, row.classId, row.beginTime, row.endTime];
         },
-        getClassRecordMin(para) {
-            request.timeTraining.timeAudit.query.classRecordMin(para).then((res) => {
-                global.printLog("-----------------Min---------------------");
-                if (res.success) {
-                    let data = res.object;
-                    global.printLog(data);
-                    this.classRecordMin.data = [];
-                    for (let item in data) {
-                        this.classRecordMin.data.push({
-                            studyTime: data[item].studyTime,
-                            maxSpeed: data[item].maxSpeed/10,
-                            recordSpeed: data[item].recordSpeed/10,
-                            engineSpeed: data[item].engineSpeed,
-                            minMileage: data[item].minMileage,
-                            state: data[item].state === 0 ? "正常" : "异常",
-                            auditState: data[item].auditState === 1 ? "合格" : "不合格",
-                            remark: data[item].remark,
-                        });
+        getClassRecordMin() {
+            this.times.btnLoading = true;
+            setTimeout(() => {
+                let para = this.classRecordMin.para;
+                request.timeTraining.timeAudit.query.classRecordMin(para).then((res) => {
+                    global.printLog("-----------------Min---------------------");
+                    if (res.success) {
+                        let data = res.object;
+                        this.classRecordMin.data = [];
+                        for (let item in data) {
+                            this.classRecordMin.data.push({
+                                studyTime: data[item].studyTime,
+                                maxSpeed: data[item].maxSpeed / 10,
+                                recordSpeed: data[item].recordSpeed / 10,
+                                engineSpeed: data[item].engineSpeed,
+                                minMileage: data[item].minMileage/10,
+                                state: data[item].state === 0 ? "正常" : "异常",
+                                auditState: data[item].auditState === 1 ? "合格" : "不合格",
+                                remark: data[item].remark,
+                            });
+                        }
                     }
-                }
-            });
+                    this.times.showList = true;
+                });
+            }, 1000);
         },
         getClassRecordPhoto(para) {
             request.timeTraining.timeAudit.query.classRecordPhoto(para).then((res) => {
@@ -416,7 +444,8 @@ export default {
                             photoTime: data[item].photoTime,
                             photosUrl: data[item].photosUrl,
                             photosType: data[item].photosType,
-                            photosTypeText: global.enums.timeAudit.photosType[data[item].photosType]
+                            photosTypeText: global.enums.timeAudit.photosType[data[item].photosType],
+                            auditScore: data[item].auditScore
                         });
                     }
                 }
@@ -449,17 +478,27 @@ export default {
                             this.times.points.push([data[item].lng, data[item].lat]);
                         }
                     }
-                    this.setMap();
+                    let points = this.times.points;
+                    if (points.length) {
+                        this.initTrack(points);
+                    }
+                    else {
+                        this.$message.warning("暂无轨迹数据");
+                    }
                 }
             });
         },
-        rowClick(row, evt, column) {
+        handleClose() {
+            this.times.showList = false;
+            this.classRecordMin.data = [];
+            this.times.btnLoading = false;
+            this.classRecordPhoto.data = [];
+        },
+        handleRowClick(row, evt, column) {
             if (column.type === "default") {
-                global.printLog(row);
                 this.radioType = "照片";
                 this.getTimesDetailById(row);
             }
-            else { }
         },
         handleCurrentChange(val) {
             this.times.page = val;
@@ -471,35 +510,69 @@ export default {
             }
         },
         initMap() {
-            setTimeout(() => {
-                amapLoad = true;
-                amaps = new AMap.Map("mapContainer", {
-                    resizeEnable: true,
-                    zoom: 17,
-                    center: [global.map.center.lat, global.map.center.lng]
-                });
-                console.log(this.curRow);
-                this.getClassRecordGPS([this.schoolCode, this.curRow.sim, this.curRow.beginTime, this.curRow.endTime]);
-            }, 100);
+            var interval = setInterval(() => {
+                if (window._amapInit) {
+                    clearInterval(interval);
+                    this.$message.success({ message: "地图已加载完成^_^" });
+                    setTimeout(() => {
+                        amapLoad = true;
+                        amaps = new AMap.Map("mapContainer", {
+                            resizeEnable: true,
+                            zoom: 11,
+                            //center: [104.803023, 29.348056],
+                            expandZoomRange: true,
+                            zooms: [3, 20]
+                        });
+                        let tranningPicture = this.$store.state.tranningPicture;
+                        for (let item in tranningPicture) {
+                            let upLeft = [tranningPicture[item].upLeft.longitude, tranningPicture[item].upLeft.latitude];
+                            let downRight = [tranningPicture[item].downRight.longitude, tranningPicture[item].downRight.latitude];
+                            new AMap.ImageLayer({
+                                url: tranningPicture[item].picUrl,
+                                bounds: new AMap.Bounds(
+                                    upLeft,
+                                    downRight
+                                ),
+                                zooms: [3, 20]
+                            }).setMap(amaps);
+                        }
+                        amaps.on("complete", () => {
+                            initAMapUI();
+                            AMapUI.loadUI(["control/BasicControl"], (BasicControl) => {
+                                amaps.addControl(new BasicControl.LayerSwitcher({
+                                    position: "rt"
+                                }));
+                            });
+                            this.getClassRecordGPS([this.schoolCode, this.curRow.sim, this.curRow.beginTime, this.curRow.endTime]);
+                        });
+                    }, 50);
+                }
+            }, 50);
         },
-        setMap() {
-            let points = this.times.points;
+        initTrack(points) {
             var marker = new AMap.Marker({
+                map: amaps,
                 position: points[0],
-                icon: "http://182.140.213.48:4043/TIMER_FRONT_LESOUS/static/assets/ico/car_online.png",
-                offset: new AMap.Pixel(-13, -5),
+                icon: "http://webapi.amap.com/images/car.png",
+                offset: new AMap.Pixel(-26, -13),
                 autoRotation: true
             });
             var polyline = new AMap.Polyline({
+                map: amaps,
                 path: points, //设置线覆盖物路径
-                strokeColor: "#32CD32", //线颜色
-                strokeOpacity: 1, //线透明度
-                strokeWeight: 1, //线宽
-                strokeStyle: "solid" //线样式
+                strokeColor: "#21364c",
+                strokeWeight: 3 //线宽
             });
-            amaps.setCenter(points[0]);
-            polyline.setMap(amaps);
-            marker.setMap(amaps);
+            var passedPolyline = new AMap.Polyline({
+                map: amaps,
+                strokeColor: "#20a0ff",
+                strokeWeight: 3
+            });
+
+            marker.on("moving", function (e) {
+                passedPolyline.setPath(e.passedPath);
+            });
+            amaps.setFitView();
 
             setTimeout(function () {
                 marker.moveAlong(points, 30);
@@ -532,15 +605,22 @@ export default {
     }
     .swiper-slide {
         width: 220px;
-        height: 220px;
+        min-height: 220px;
         border: 1px solid #dedede;
         background-size: cover;
+        padding-bottom: 10px;
         img {
             width: 220px;
             height: 165px;
         }
         p {
             color: #1F2D3D;
+        }
+        .el-icon-check {
+            color: #13CE66;
+        }
+        .el-icon-close {
+            color: #FF4949;
         }
     }
 }

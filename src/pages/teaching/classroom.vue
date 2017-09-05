@@ -16,13 +16,12 @@
     </el-row>
     <!--列表-->
     <el-table highlight-current-row :data="classRoomList" @row-click="rowClick">
-      <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column prop="name" label="名称"></el-table-column>
-      <el-table-column prop="address" label="地址"></el-table-column>
-      <el-table-column prop="deviceNo" label="设备"></el-table-column>
-      <el-table-column prop="cameraNo" label="摄像头"></el-table-column>
-      <el-table-column prop="gmtCreate" label="创建时间"></el-table-column>
-      <el-table-column label="操作">
+      <el-table-column prop="address" label="地址" :show-overflow-tooltip="true"></el-table-column>
+      <el-table-column prop="deviceNo" label="设备" width="200"></el-table-column>
+      <el-table-column prop="cameraNo" label="摄像头" width="200"></el-table-column>
+      <el-table-column prop="gmtCreate" label="创建时间" width="200"></el-table-column>
+      <el-table-column label="操作" width="160">
         <template scope="scope">
           <el-button type="text" size="small" @click.stop="recordClick(scope.row)">培训记录</el-button>
           <el-button type="text" size="small" @click.stop="monitorClick(scope.row)">查看监控</el-button>
@@ -103,7 +102,7 @@
           <div id="mapContainer"></div>
         </el-row>
         <p class="group-title">围栏信息</p>
-        <el-form :model="classRoomDetailCondition">
+        <el-form :model="classRoomDetailCondition" class="classRoomDetail">
           <el-row>
             <el-col :span="8">
               <label>名称：{{classRoomDetailCondition.name}}</label>
@@ -118,7 +117,7 @@
           <el-row>
             <label>地址：{{classRoomDetailCondition.address}}</label>
           </el-row>
-          <el-row>
+          <el-row class="mb20">
             <label>设备列表：{{classRoomDetailCondition.deviceNo}}</label>
           </el-row>
           <el-row class="photo">
@@ -210,45 +209,44 @@
     <!--培训记录-->
     <el-dialog title="培训记录" v-model="record" :close-on-click-modal="false" size="full">
       <el-form :inline="true" class="mt20">
-        <el-form-item class="normal">
-          <el-date-picker align="right" type="datetime" v-model="recordCondition.gmtBegin" placeholder="选择时间日期" @change="beginDateChange">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item class="normal">
-          <el-date-picker align="right" type="datetime" v-model="recordCondition.gmtEnd" placeholder="选择时间日期" @change="endDateChange">
-          </el-date-picker>
+        <el-form-item label="教练姓名">
+          <el-input v-model="recordCondition.teacherName" placeholder="请输入教练姓名" style="width:200px;"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-input style="width:250px;" v-model="recordCondition.teacherName" icon="search" placeholder="请输入教练姓名" :on-icon-click="queryRecordList">
-          </el-input>
+          <el-button type="primary" @click="queryRecordList" class="mr20"> 查 询 </el-button>
+        </el-form-item>
+        <el-form-item label="起止时间" class="normal">
+          <el-date-picker type="daterange" v-model="recordCondition.dateTranning" placeholder="选择起止时间" @change="dateRangeChange" class="mr20" :editable="false">
+          </el-date-picker>
         </el-form-item>
         <!--<el-button type="primary" @click="queryRecordList"> 查 询 </el-button>-->
       </el-form>
       <!--列表-->
       <el-table highlight-current-row :data="recordCondition.recordList" @row-click="recordRowClick">
         <el-table-column prop="teacherName" label="教练姓名"></el-table-column>
-        <el-table-column prop="durationTime" label="课程时长（分钟）"></el-table-column>
+        <el-table-column prop="durationTime" label="课程时长（分钟）" width="200"></el-table-column>
         <el-table-column prop="signInNum" label="学员人数"></el-table-column>
-        <el-table-column prop="gmtBegin" label="签到时间" :formatter="formatter"></el-table-column>
-        <el-table-column prop="gmtEnd" label="签退时间" :formatter="formatter"></el-table-column>
+        <el-table-column prop="gmtBegin" label="上课时间" :formatter="formatter" width="200"></el-table-column>
+        <el-table-column prop="gmtEnd" label="下课时间" :formatter="formatter" width="200"></el-table-column>
         <el-table-column prop="status" label="状态" :formatter="formatter"></el-table-column>
       </el-table>
       <!--工具条-->
-      <el-pagination layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="pageSize" :total="this.recordCondition.total">
+      <el-pagination v-if="record" layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="pageSize" :total="this.recordCondition.total">
       </el-pagination>
       <div slot="footer" class="dialog-footer">
         <el-button @click.native="record = false" size="large">关闭</el-button>
       </div>
     </el-dialog>
     <!--培训详情页面-->
-    <el-dialog title="培训记录详情" v-model="recordDetail" :close-on-click-modal="false" size="full">
+    <el-dialog title="培训记录详情" v-model="recordDetail" :close-on-click-modal="false" size="full" @close="handleDialogClose">
       <el-row class="mb20 mt20">
-        <el-radio-group v-model="paymentType">
+        <el-radio-group v-model="recordType" @change="handleTypeChange">
           <el-radio-button label="基本信息"></el-radio-button>
           <el-radio-button label="过程图片"></el-radio-button>
+          <el-radio-button label="抓拍图片"></el-radio-button>
         </el-radio-group>
       </el-row>
-      <el-row v-if="paymentType==='基本信息'">
+      <el-row v-if="recordType==='基本信息'">
         <el-row>
           <el-col :span="4">
             <img class="photoClass" :src="recordDetailCondition.teacher.sigPhotoUrl">
@@ -279,6 +277,7 @@
             </el-form-item>
             <el-form-item>
               <el-select placeholder="请选择审核状态" v-model="recordDetailCondition.status" @change="queryStudent">
+                <el-option label="全部" value=""></el-option>
                 <el-option label="成功" value="success"></el-option>
                 <el-option label="失败" value="fail"></el-option>
                 <el-option label="复审成功" value="review_success"></el-option>
@@ -289,7 +288,7 @@
           <!--列表-->
           <el-table :data="recordDetailCondition.studentList" @row-click="detailRowClick" highlight-current-row>
             <el-table-column prop="userName" label="学员姓名"></el-table-column>
-            <el-table-column prop="telephone" label="电话号码"></el-table-column>
+            <el-table-column prop="telephone" label="电话号码" width="180"></el-table-column>
             <el-table-column label="签到时间" width="180">
               <template scope="scope">
                 {{new Date(scope.row.signs[1].gmtSign).Format("yyyy-MM-dd HH:mm:ss")}}
@@ -313,7 +312,7 @@
           </el-pagination>
         </el-row>
       </el-row>
-      <el-row v-if="paymentType==='过程图片'">
+      <el-row v-if="recordType==='过程图片'">
         <!--过程图片-->
         <el-row class="history-list">
           <div class="el-steps is-vertical" style="font-size:13px;">
@@ -336,7 +335,7 @@
                     <el-col :span="6" v-for="(sign,index) in item.signs" v-if="index>0" class="ml30">
                       <img :src="sign.picUrl" style="width:215px;height:176px;border-radius:3px;" />
                       <p class="mt10 t-center">
-                        {{sign.type==="sign_in"?"学员签到":sign.type==="halfway"?"正在过程签到":"学员签退"}}
+                        {{sign.type==="sign_in"?(item.type==="teacher"?"教练":"学员")+"签到":sign.type==="halfway"?"正在过程签到":(item.type==="teacher"?"教练":"学员")+"签退"}}
                         <span>{{new Date(sign.gmtSign).Format("HH:mm:ss")}}</span>
                         <span :class="sign.status==='success'||sign.status==='review_success'?'el-icon-check':'el-icon-close'" :style="sign.status==='success'||sign.status==='review_success'?'color:#13CE66;':'color:#FF4949;'"></span>
                       </p>
@@ -350,6 +349,35 @@
         <!--工具条-->
         <el-pagination layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="pageSize" :total="recordDetailCondition.total">
         </el-pagination>
+      </el-row>
+      <el-row v-if="recordType==='抓拍图片'">
+        <!--抓拍图片-->
+        <el-row :gutter="20" class="snapshot">
+          <!--<el-col :span="2">
+                                              <label class="snapshot-name">手动抓拍</label>
+                                            </el-col>-->
+          <el-col :span="22">
+            <el-col :span="5" v-for="item in snapshot.manual">
+              <img :src="item.url" class="snapshot-pic" />
+              <p class="snapshot-date t-center">
+                {{item.datetime}}
+              </p>
+            </el-col>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" class="snapshot">
+          <!--<el-col :span="2">
+                                              <label class="snapshot-name">自动抓拍</label>
+                                            </el-col>-->
+          <el-col :span="22">
+            <el-col :span="5" v-for="item in snapshot.automatic">
+              <img :src="item.url" class="snapshot-pic" />
+              <p class="snapshot-date t-center">
+                {{item.datetime}}
+              </p>
+            </el-col>
+          </el-col>
+        </el-row>
       </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click.native="recordDetail = false" size="large">关闭</el-button>
@@ -419,41 +447,83 @@
       </div>
     </el-dialog>
     <!--培训监控页面-->
-    <el-dialog title="监控详情" v-model="monitor" :close-on-click-modal="false" size="full">
-      <el-row class="mt20 mb20">
-        <el-col :span="12">
-          <el-radio-group v-model="monitorType">
-            <el-radio-button label="摄像头A"></el-radio-button>
-            <el-radio-button label="摄像头B"></el-radio-button>
-            <el-radio-button label="摄像头C"></el-radio-button>
-            <el-radio-button label="摄像头D"></el-radio-button>
-          </el-radio-group>
+    <el-dialog title="监控详情" v-model="monitor" :close-on-click-modal="false" size="full" @close="handleDialogClose">
+      <el-radio-group v-model="monitorType" class="mt20 mb10" @change="handleTypeChange">
+        <el-radio-button label="监控"></el-radio-button>
+        <el-radio-button label="抓拍图片"></el-radio-button>
+      </el-radio-group>
+      <el-row :span="24" v-if="monitorType==='监控'">
+        <el-col :span="10">
+          <div class="cameras">
+            <div class="cameras-header">
+              <el-tabs v-model="cameraChannel">
+                <el-tab-pane v-for="item in cameras" :label="'摄像头'+item.location" :name="'摄像头'+item.location"></el-tab-pane>
+              </el-tabs>
+            </div>
+            <div class="catch-inner">
+              <embed v-for="item in cameras" v-show="cameraChannel==='摄像头'+item.location" :src="item.monitorUrl" width="100%" height="100%"></embed>
+            </div>
+          </div>
+          <el-button type="primary" v-for="item in cameras" v-if="cameraChannel==='摄像头'+item.location" @click="handleCatch(item.snapshotUrl)" class="right mt10" :loading="btnLoading">抓拍照片</el-button>
+        </el-col>
+        <!--列表-->
+        <el-col :span="13" class="ml30">
+          <el-row style="line-height:35px;">
+            <el-col :span="8">
+              <label>教练姓名:{{monitorCondition.monitorObj.teacherName}}</label>
+            </el-col>
+            <el-col :span="8">
+              <label>在线学员:{{monitorCondition.monitorObj.signInNum}}</label>
+            </el-col>
+            <el-col :span="8">
+              <label>培训时长:{{monitorCondition.monitorObj.durationTime}}</label>
+            </el-col>
+          </el-row>
+          <el-table :data="recordDetailCondition.studentList">
+            <el-table-column prop="userName" label="学员姓名"></el-table-column>
+            <el-table-column prop="idcard" label="身份证" width="200"></el-table-column>
+            <el-table-column prop="signInTime" label="签到时间" width="200">
+              <template scope="scope">
+                <span v-for="item in scope.row.signs" v-if="item.type==='sign_in'">
+                  {{new Date(item.gmtSign).Format("yyyy-MM-dd HH:mm:ss")}}
+                </span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!--工具条-->
+          <el-pagination layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="pageSize" :total="recordDetailCondition.total">
+          </el-pagination>
         </el-col>
       </el-row>
-      <el-col :span="10" v-if="monitorType==='摄像头A'">
-        <embed src="http://125.71.30.144:5080/flashls/flashvideo.php?para=[{%22plate%22:%22%E5%B7%9DA12741%22,%22platecolor%22:%22%E9%BB%84%22,%22area%22:%221%22,%22chan%22:%221%22}]" width="400" height="420"></embed>
-      </el-col>
-      <el-col :span="10" v-if="monitorType==='摄像头B'">
-        <embed src="http://125.71.30.144:5080/flashls/flashvideo.php?para=[{%22plate%22:%22%E5%B7%9DA12741%22,%22platecolor%22:%22%E9%BB%84%22,%22area%22:%221%22,%22chan%22:%221%22}]" width="400" height="420"></embed>
-      </el-col>
-      <el-col :span="10" v-if="monitorType==='摄像头C'">
-      </el-col>
-      <el-col :span="10" v-if="monitorType==='摄像头D'">
-      </el-col>
-      <!--列表-->
-      <label style="position:absolute;left:535px;top:30px;">教练姓名:{{monitorCondition.monitorObj.teacherName}}</label>
-      <label style="position:absolute;left:755px;top:30px;">在线学员:{{monitorCondition.monitorObj.signInNum}}</label>
-      <label style="position:absolute;left:950px;top:30px;">培训时长:{{monitorCondition.monitorObj.durationTime}}</label>
-      <div style="position:absolute;left:494px;width:583px">
-        <el-table :data="recordDetailCondition.studentList">
-          <el-table-column prop="userName" label="学员姓名"></el-table-column>
-          <el-table-column prop="idcard" label="身份证"></el-table-column>
-          <el-table-column prop="signInTime" label="签到时间"></el-table-column>
-        </el-table>
-        <!--工具条-->
-        <el-pagination layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="pageSize" :total="recordDetailCondition.total">
-        </el-pagination>
-      </div>
+      <el-row v-if="monitorType==='抓拍图片'">
+        <!--抓拍图片-->
+        <el-row :gutter="20" class="snapshot">
+          <!--<el-col :span="2">
+                                                  <label class="snapshot-name">手动抓拍</label>
+                                                </el-col>-->
+          <el-col :span="22">
+            <el-col :span="5" v-for="item in snapshot.manual">
+              <img :src="item.url" class="snapshot-pic" />
+              <p class="snapshot-date t-center">
+                {{item.datetime}}
+              </p>
+            </el-col>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" class="snapshot">
+          <!--<el-col :span="2">
+                                                  <label class="snapshot-name">自动抓拍</label>
+                                                </el-col>-->
+          <el-col :span="22">
+            <el-col :span="5" v-for="item in snapshot.automatic">
+              <img :src="item.url" class="snapshot-pic" />
+              <p class="snapshot-date t-center">
+                {{item.datetime}}
+              </p>
+            </el-col>
+          </el-col>
+        </el-row>
+      </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click.native="monitor = false" size="large">关闭</el-button>
       </div>
@@ -472,6 +542,7 @@ var makerShow = [];
 var polygonArr = [];
 var activePolygon = null;
 var lnglatInArea = false;
+var queryTimer = 0;
 import $ from "jquery";
 import { request } from "../../api/api";
 import { global } from "../../assets/javascript/global";
@@ -486,8 +557,10 @@ export default {
       updateClassRoom: false,
       classRoomDetail: false,
       addClassRoom: false,
-      paymentType: "基本信息",
-      monitorType: "摄像头A",
+      btnLoading: false,
+      recordType: "基本信息",
+      monitorType: "监控",
+      cameraChannel: "摄像头A",
       pageSize: global.pageSize,
       currentPage: 1,
       schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode,
@@ -583,6 +656,7 @@ export default {
         gmtBegin: "", //开始时间
         gmtEnd: "", //结束时间
         teacherName: "",//教练姓名
+        dateTranning: []
       },
       recordDetailCondition: {     //培训记录详情页面
         userName: "",
@@ -620,6 +694,11 @@ export default {
         },
         processInfo: []
       },
+      snapshot: {
+        manual: [],
+        automatic: []
+      },
+      cameras: [],
       validator: {
         name: [
           { required: true, message: "请输入名称", trigger: "blur" }
@@ -682,7 +761,7 @@ export default {
 
             item.cameraNo = "";
             for (let k = 0; k < item.cameras.length; k++) {
-              item.cameraNo += item.cameras[k].location + item.cameras[k].cameraNo + "  "; //列表的摄像头展示
+              item.cameraNo += item.cameras[k].location + "：" + item.cameras[k].cameraNo; //列表的摄像头展示
               if (item.cameras[k].location == 'A') {
                 item.cameraA = item.cameras[k].cameraNo;
               } else if (item.cameras[k].location == 'B') {
@@ -734,6 +813,7 @@ export default {
       let args = [this.recordDetailCondition.recordId];
       request.teaching.classRoom.query.queryTeacher(args).then((res) => {
         if (res.success === true) {
+          this.recordDetailCondition.teacher = { sigPhotoUrl: "", signInTime: "", inStatus: "", sigInUrl: "", signOutTime: "", sigOutUrl: "", outStatus: "" };
           this.recordDetailCondition.teacherObj = res.object;
           let items = this.recordDetailCondition.teacherObj.signs;
           for (let i = 0; i < items.length; i++) {
@@ -754,37 +834,43 @@ export default {
     },
     //查询培训记录详情页面(学员)
     queryStudent() {
+      global.printLog("query student info...");
       let args = [this.recordDetailCondition.recordId, this.recordDetailCondition.userName, this.recordDetailCondition.telephone,
       this.recordDetailCondition.idcard, this.recordDetailCondition.status, this.recordDetailCondition.currentPage, this.pageSize];
       request.teaching.classRoom.query.student(args).then((res) => {
         if (res.success === true) {
           let data = res.object.list;
-          console.log(data);
           this.recordDetailCondition.studentList = [];
           this.recordDetailCondition.processInfo = [];
-          this.recordDetailCondition.total = res.object.num;
           for (let item in data) {
             if (data[item].type === "student") {
               this.recordDetailCondition.studentList.push({
+                id: data[item].id,
                 userName: data[item].userName,
                 telephone: data[item].telephone,
+                status_no: data[item].status,
                 status: global.enums.record.status[data[item].status],
                 signs: data[item].signs,
                 remark: data[item].remark,
                 type: data[item].type,
-                gmtCreate: data[item].gmtCreate
+                gmtCreate: data[item].gmtCreate,
+                idcard: data[item].idcard
               });
             }
             this.recordDetailCondition.processInfo.push({
+              id: data[item].id,
               userName: data[item].userName,
               telephone: data[item].telephone,
+              status_no: data[item].status,
               status: global.enums.record.status[data[item].status],
               signs: data[item].signs,
               remark: data[item].remark,
               type: data[item].type,
-              gmtCreate: data[item].gmtCreate
+              gmtCreate: data[item].gmtCreate,
+              idcard: data[item].idcard
             });
           }
+          this.recordDetailCondition.total = this.recordDetailCondition.studentList.length;
         }
       });
     },
@@ -793,7 +879,6 @@ export default {
       let args = [this.recordDetailCondition.recordId];
       request.teaching.classRoom.query.queryRecordDetail(args).then((res) => {
         if (res.success === true) {
-          //console.log(res.object);
           this.recordDetailCondition.recordObj = res.object;
         }
       });
@@ -805,8 +890,53 @@ export default {
         if (res.success === true) {
           if (res.object != null) {
             this.monitorCondition.monitorObj = res.object;
-            callback();
           }
+          callback(res.object);
+        }
+      });
+    },
+    //查询抓拍照片
+    querySnapshot() {
+      let args = [this.recordDetailCondition.recordId];
+      request.teaching.classRoom.query.snapshot(args).then((res) => {
+        if (res.success === true) {
+          global.printLog(res);
+          this.snapshot.manual = [];
+          this.snapshot.automatic = [];
+          let data = res.object;
+          for (let item in data) {
+            if (data[item].type === "manual") {
+              this.snapshot.manual.push({
+                id: data[item].id,
+                url: data[item].url,
+                recordId: data[item].recordId,
+                time: new Date(data[item].gmtCreate).Format("HH:mm:ss"),
+                date: new Date(data[item].gmtCreate).Format("yyyy-MM-dd"),
+                datetime: new Date(data[item].gmtCreate).Format("yyyy-MM-dd HH:mm:ss")
+              });
+            }
+            else if (data[item].type === "automatic") {
+              this.snapshot.automatic.push({
+                id: data[item].id,
+                url: data[item].url,
+                recordId: data[item].recordId,
+                time: new Date(data[item].gmtCreate).Format("HH:mm:ss"),
+                date: new Date(data[item].gmtCreate).Format("yyyy-MM-dd"),
+                datetime: new Date(data[item].gmtCreate).Format("yyyy-MM-dd HH:mm:ss")
+              });
+            }
+          }
+        }
+      });
+    },
+    //查询监控列表
+    queryCameraList() {
+      let args = [this.monitorCondition.classRoomId];
+      request.teaching.classRoom.query.cameraList(args).then((res) => {
+        if (res.success === true) {
+          this.cameras = res.object;
+          global.printLog(res.object);
+          this.cameraChannel = "摄像头" + res.object[0].location;
         }
       });
     },
@@ -843,7 +973,7 @@ export default {
               this.$message.info("请至少选择一个摄像头");
               return;
             }
-            console.log(JSON.stringify(selectCameras.cameras));
+            global.printLog(JSON.stringify(selectCameras.cameras));
             let args = {};
             args.schoolCode = this.schoolCode;
             args.name = this.addClassRoomCondition.name;
@@ -959,61 +1089,18 @@ export default {
         this.queryClassRoomList();
       }
     },
-    // 日期改变拆分
-    beginDateChange(date) {
-      let dataStr = this.changDate(date);
-      this.recordCondition.gmtBegin = dataStr;
-      this.queryRecordList();
-    },
-    // 日期改变拆分
-    endDateChange(date) {
-      let dataStr = this.changDate(date);
-      this.recordCondition.gmtEnd = dataStr;
-      this.queryRecordList();
-    },
-    //设备类型转换
-    changStatus(status) {
-      let statusName = "";
-      if (status == "device") {
-        statusName = "设备";
-      } else if (status == "camera") {
-        statusName = "摄像头";
-      } else if (status == "sign_in") {
-        statusName = "正在签到";
-      } else if (status == "halfway") {
-        statusName = "正在过程签到 ";
-      } else if (status == "sign_out") {
-        statusName = "正在签退 ";
-      } else if (status == "doing") {
-        statusName = "正在培训 ";
-      } else if (status == "done") {
-        statusName = "培训完成 ";
-      } else if (status == "success") {
-        statusName = "成功  ";
-      } else if (status == "fail") {
-        statusName = "失败  ";
-      } else if (status == "review_success") {
-        statusName = "复审成功  ";
-      } else if (status == "review_fail") {
-        statusName = "复审失败 ";
+    // 日期改变触发
+    dateRangeChange(date) {
+      let beginDate = "";
+      let endDate = "";
+      if (date !== "") {
+        beginDate = date.split(" - ")[0] + " 00:00:00";
+        endDate = date.split(" - ")[1] + " 23:59:59";
       }
-      return statusName;
-    },
-    //时间转换
-    changDate(dateString) {
-      if (dateString == null) {
-        return "";
-      }
-      let dateC = "";
-      let date = new Date(dateString);
-      let y = date.getFullYear();
-      let m = date.getMonth() + 1;
-      let d = date.getDate();
-      let h = date.getHours();
-      let M = date.getMinutes();
-      let s = date.getSeconds();
-      dateC = y + "-" + m + "-" + d + " " + h + ":" + M + ":" + s;
-      return dateC;
+      //this.recordCondition.dateTranning = [beginDate, endDate];
+      this.recordCondition.gmtBegin = beginDate;
+      this.recordCondition.gmtEnd = endDate;
+      this.queryRecordList();
     },
     //点击新增理论教室按钮
     addClassRommClick() {
@@ -1036,36 +1123,44 @@ export default {
     },
     //设备列表行点击方法
     rowClick(row, evt, column) {
-      this.classRoomDetail = true;
-      this.initMap(() => {
-        this.initData(false);
-        setupInitialData(row.pens, false);
-        closeAllEditor();
-      }, "mapContainer");
-      this.classRoomDetailCondition.id = row.id;
-      this.classRoomDetailCondition.name = row.name;
-      this.classRoomDetailCondition.address = row.address;
-      this.classRoomDetailCondition.area = row.area;
-      this.classRoomDetailCondition.galleryful = row.galleryful;
-      this.classRoomDetailCondition.deviceNo = row.deviceNo;
-      this.classRoomDetailCondition.cameraA = row.cameraA;
-      this.classRoomDetailCondition.cameraB = row.cameraB;
-      this.classRoomDetailCondition.cameraC = row.cameraC;
-      this.classRoomDetailCondition.cameraD = row.cameraD;
-      this.classRoomDetailCondition.devices = row.deviceArray;
-      this.classRoomDetailCondition.pens = row.pens;
+      if (column.type === "default") {
+        this.classRoomDetail = true;
+        this.initMap(() => {
+          this.initData(false);
+          setupInitialData(row.pens, false);
+          closeAllEditor();
+        }, "mapContainer");
+        this.classRoomDetailCondition.id = row.id;
+        this.classRoomDetailCondition.name = row.name;
+        this.classRoomDetailCondition.address = row.address;
+        this.classRoomDetailCondition.area = row.area;
+        this.classRoomDetailCondition.galleryful = row.galleryful;
+        this.classRoomDetailCondition.deviceNo = row.deviceNo;
+        this.classRoomDetailCondition.cameraA = row.cameraA;
+        this.classRoomDetailCondition.cameraB = row.cameraB;
+        this.classRoomDetailCondition.cameraC = row.cameraC;
+        this.classRoomDetailCondition.cameraD = row.cameraD;
+        this.classRoomDetailCondition.devices = row.deviceArray;
+        this.classRoomDetailCondition.pens = row.pens;
+      }
     },
     //培训记录行点击方法
     recordRowClick(row, evt, column) {
       this.recordDetail = true;
+      this.recordType = "基本信息";
+      this.recordDetailCondition.status = "";
+      this.recordDetailCondition.userName = "";
       this.recordDetailCondition.recordId = row.id;
       this.queryTeacher();
       this.queryRecordDetail();
       this.queryStudent();
+      queryTimer = setInterval(() => {
+        this.queryStudent();
+      }, 10000);
     },
     //培训详情行点击方法
     detailRowClick(row, evt, column) {
-      console.log(row);
+      global.printLog(row);
       this.recordDetailCondition.student.userName = row.userName;
       this.recordDetailCondition.student.signs = row.signs;
       this.stuDetail = true;//学员详情弹窗
@@ -1081,7 +1176,7 @@ export default {
       this.updateClassRoom = true;
       let row = this.classRoomDetailCondition;
       this.initMap(() => {
-        this.initData(true);
+        this.initData(false);
         setupInitialData(row.pens, true);
       }, "mapContainerUpdate");
       this.queryDevice();
@@ -1105,20 +1200,32 @@ export default {
       this.recordCondition.gmtBegin = "";
       this.recordCondition.gmtEnd = "";
       this.recordCondition.teacherName = "";
+      this.recordCondition.dateTranning = [];
+      this.recordCondition.currentPage = 1;
       this.queryRecordList();
     },
     //点击监控按钮
     monitorClick(row) {
-      this.monitor = true;
       this.monitorCondition.monitorObj.teacherName = "";
       this.monitorCondition.monitorObj.signInNum = "";
       this.monitorCondition.monitorObj.durationTime = "";
       this.monitorCondition.monitorObj.id = "";
       this.recordDetailCondition.studentList = [];
       this.monitorCondition.classRoomId = row.id;
-      this.queryMonitor(() => {
-        this.recordDetailCondition.recordId = this.monitorCondition.monitorObj.id;
-        this.queryStudent();
+      this.queryMonitor((result) => {
+        if (result !== null) {
+          this.monitor = true;
+          this.monitorType = "监控";
+          this.recordDetailCondition.recordId = this.monitorCondition.monitorObj.id;
+          this.queryStudent();
+          this.queryCameraList();
+          queryTimer = setInterval(() => {
+            this.queryStudent();
+          }, 10000);
+        }
+        else {
+          this.$message.info("该教室暂未在培训中");
+        }
       });
     },
     initMap(callback, mapObj) {
@@ -1186,15 +1293,52 @@ export default {
           });
         }
       }, 1000);
+    },
+    handleCatch(url) {
+      this.btnLoading = true;
+      request.teaching.classRoom.catchCamera(url).then((res) => {
+        let data = eval("(" + res + ")");
+        if (data.Message === "ok") {
+          let para = {
+            recordId: this.recordDetailCondition.recordId,
+            type: "manual",
+            url: data.PictureUrl
+          }
+          request.teaching.classRoom.save.snapshot(para).then((res) => {
+            this.btnLoading = false;
+            if (res.success === true) {
+              this.$message.success("抓拍照片成功");
+            }
+            else {
+              this.$message.error("抓拍照片失败");
+            }
+          });
+        }
+        else {
+          this.btnLoading = false;
+          this.$message.error("抓拍照片失败，原因：视频画面还未播放或播放数据还未传输到服务器");
+        }
+      });
+    },
+    handleTypeChange(val) {
+      global.printLog(val);
+      if (this.monitor) {
+        if (val === "监控") {
+          this.queryCameraList();
+        }
+      }
+      if (val === "抓拍图片") {
+        this.querySnapshot();
+      }
+    },
+    handleDialogClose() {
+      clearInterval(queryTimer);
     }
-  },
-  mounted() {
-    this.queryClassRoomList();
   },
   //页面激活之后
   activated() {
     this.queryClassRoomList();
-  },
+  }
 }
 
 
@@ -1210,6 +1354,7 @@ function closeAllEditor() {
   }
   activePolygon = null;
 }
+
 function addDeleteDelegate(polygon) {
   AMap.event.addListener(polygon, "mouseover", function (e) {
     if (activePolygon !== polygon) {
@@ -1268,8 +1413,6 @@ function getRegionData() {
 }
 
 function setupInitialData(initPolygonData, draw) {
-  // console.log(map);
-  // console.log(initPolygonData);
   lnglatInArea = true;
   if (initPolygonData.length == 0) {
     mouseTool.polygon();
@@ -1305,6 +1448,58 @@ function setupInitialData(initPolygonData, draw) {
 </script> 
 
 <style scope lang="scss">
+.catch-inner {
+  width: 100%;
+  height: 354px;
+}
+
+.snapshot {
+  padding: 0 20px;
+  margin-bottom: 10px;
+  .snapshot-name {
+    display: inline;
+  }
+  .snapshot-pic {
+    border-radius: 4px;
+    width: 100%;
+    height: 213px;
+    margin-right: 20px;
+  }
+  .snapshot-date {
+    line-height: 35px;
+  }
+}
+
+.cameras {
+  border: 8px solid #2f3136;
+  height: 400px;
+  border-radius: 5px;
+  .cameras-header {
+    background: #2f3136;
+    color: #fff;
+    width: 100%;
+    .el-tabs {
+      .el-tabs__header {
+        border: 0;
+        margin: 0 10px;
+        margin-bottom: 5px;
+        .el-tabs__nav {
+          .el-tabs__item {
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+}
+
+.classRoomDetail {
+  padding: 0 30px;
+  .el-row {
+    padding: 10px 0;
+  }
+}
+
 .className {
   .fontBegin {
     position: absolute;
@@ -1369,7 +1564,7 @@ function setupInitialData(initPolygonData, draw) {
 
   .photo {
     position: absolute;
-    left: 148px;
+    left: 108px;
   }
 
 

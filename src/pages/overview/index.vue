@@ -1,5 +1,5 @@
 <template>
-    <section>
+    <section v-loading="overview.pageLoading">
         <div class="content">
             <el-row class="content_top">
                 <el-row :span="24">
@@ -187,10 +187,15 @@
                     学员APP
                 </div>
                 <div class="row-app-content">
-                    <div class="content-left-erwm">
-                        <img src="static/images/erwm.png" />
+                    <div class="content-column">
+                        <img src="static/images/stu_app_hxc.png" class="app-qr-code" title="扫码下载" />
                     </div>
-                    <div class="content-download-link">扫码下载</div>
+                    <div class="content-column">
+                        <a href="http://haoxueche.oss-cn-hangzhou.aliyuncs.com/cp_pay/other/1497434505952.exe" title="点击下载">
+                            <img src="static/images/jxq_icon.bmp" class="robot" />
+                            <p>驾小强机器人</p>
+                        </a>
+                    </div>
                 </div>
             </div>
             <div class="side-row">
@@ -200,7 +205,7 @@
                 <ul class="row-info-content">
                     <li>
                         <span class="mr10 left">
-                            06.13
+                            {{new Date().Format("MM.dd")}}
                         </span>
                         <span>
                             驾校微信公众平台上线
@@ -208,7 +213,7 @@
                     </li>
                     <li>
                         <span class="mr10 left">
-                            06.12
+                            {{new Date().Format("MM.dd")}}
                         </span>
                         <span>
                             好学车整合平台更新
@@ -284,20 +289,23 @@ export default {
                         }
                     ]
                 },
+                pageLoading: false
             }
         }
     },
     methods: {
         //查询总览
         queryTopData() {
+            this.overview.pageLoading = true;
             let para = this.overview.filter.schoolCode;
             request.overview.getTopData(para).then((res) => {
-                if (res.success === true) {
+                if (res.success) {
                     let data = res.object;
                     if (data.baseStatisticsList.length) {
                         this.overview.data.baseStatisticsList = data.baseStatisticsList
                     }
                 }
+                this.overview.pageLoading = false;
             });
         }
     },
@@ -470,21 +478,24 @@ export default {
             }
         }
         .row-app-content {
-            height: 110px;
-            .content-left-erwm {
-                float: left;
-                width: 82px;
-                padding-left: 20px;
-                margin-top: 15px;
-                >img {
+            height: 95px;
+            display: -moz-box;
+            display: -webkit-box;
+            display: box;
+            padding-top: 15px;
+            .content-column {
+                -ms-flex: 1;
+                -moz-box-flex: 1;
+                -webkit-box-flex: 1;
+                text-align: center;
+                .app-qr-code {
                     width: 82px;
                     height: 84px;
                 }
-            }
-            .content-download-link {
-                float: left;
-                line-height: 110px;
-                margin-left: 20px;
+                .robot {
+                    width: 64px;
+                    height: 64px;
+                }
             }
         }
         .row-info-content {

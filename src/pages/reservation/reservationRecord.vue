@@ -5,10 +5,27 @@
             <!--工具条-->
             <el-col :span="24" class="toolbar">
                 <el-form :inline="true" :model="filters">
-                    <el-col :span="12">
+                    <el-col :span="18">
                         <el-form-item>
                             <el-input class="search-input" v-model="filters.keyword" placeholder="输入学员姓名、电话" icon="search" :on-icon-click="getReservation"></el-input>
                         </el-form-item>
+                        <el-form-item>
+                            <el-date-picker v-model="filters.dateRange" type="daterange" placeholder="选择预约时间" :editable="false" @change="handleDateRangeChange"></el-date-picker>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-select v-model="filters.isEvaluate" style="width:150px;" @change="getReservation">
+                                <el-option label="全部" value=""></el-option>
+                                <el-option label="未评价" value="0"></el-option>
+                                <el-option label="已评价" value="1"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <!--<el-form-item>
+                            <el-select v-model="filters.isPay" style="width:150px;" @change="getReservation">
+                                <el-option label="全部" value=""></el-option>
+                                <el-option label="未支付" value="0"></el-option>
+                                <el-option label="已支付" value="1"></el-option>
+                            </el-select>
+                        </el-form-item>-->
                     </el-col>
                     <el-dropdown @command="handleCommand" class="right">
                         <el-button type="primary">
@@ -23,8 +40,6 @@
             </el-col>
             <!--列表-->
             <el-table :data="reservation" highlight-current-row @row-click="rowClick">
-                <!--<el-table-column type="selection" width="55" @click.stop="">
-                                                        </el-table-column>-->
                 <el-table-column prop="teacherName" label="教练">
                 </el-table-column>
                 <el-table-column prop="studentPhone" label="学员电话">
@@ -249,7 +264,10 @@ export default {
     data() {
         return {
             filters: {
-                keyword: ""
+                keyword: "",
+                dateRange: [],
+                isEvaluate: "",
+                isPay: ""
             },
             recording: {
                 total: 0,
@@ -307,8 +325,17 @@ export default {
         },
         //查询预约记录
         getReservation() {
+            let beginDate = "";
+            let endDate = "";
             this.pageLoading = true;
-            let para = [this.filters.keyword, this.schoolCode, this.recording.page, this.recording.pageSize];
+            let daterange = this.filters.dateRange;
+            if (daterange.length > 0) {
+                beginDate = new Date(daterange[0]).Format("yyyy-MM-dd") + " 00:00:00";
+                endDate = new Date(daterange[1]).Format("yyyy-MM-dd") + " 23:59:59";
+            }
+            let para = [this.filters.keyword, this.schoolCode, this.recording.page, this.recording.pageSize, beginDate, endDate, this.filters.isEvaluate, this.filters.isPay];
+            global.printLog(para);
+            //return;
             setTimeout(() => {
                 request.appointment.query.recording(para).then((res) => {
                     if (res.success) {
@@ -345,7 +372,7 @@ export default {
                     let para = {
                         appointmentId: appointmentId,
                         cancelUserId: this.userId,
-                        cancelUserType: 10
+                        cancelUserType: 30
                     }
                     request.appointment.cancel(para).then((res) => {
                         if (res.success) {
@@ -432,7 +459,7 @@ export default {
         handleCommand(command) {
             if (command === "export") {
                 let downLink = document.getElementById("down-link");
-                downLink.setAttribute("href", request.baseUrl + "/appointmentrecord/exportAppointmentRecord?keyWord=" + this.filters.keyword + "&schoolCode=" + this.schoolCode);
+                downLink.setAttribute("href", sessionStorage.getItem("baseUrl") + "/appointmentrecord/exportAppointmentRecord?keyWord=" + this.filters.keyword + "&schoolCode=" + this.schoolCode);
                 downLink.click();
             }
         },
@@ -443,6 +470,14 @@ export default {
             this.appraisal.isNickName = false;
             this.appraisal.impressionTags = [];
         },
+        handleDateRangeChange(daterange) {
+            this.filters.dateRange = [];
+            if (daterange.length > 0) {
+                this.filters.dateRange.push(daterange.split(" - ")[0]);
+                this.filters.dateRange.push(daterange.split(" - ")[1]);
+            }
+            this.getReservation();
+        }
     },
     activated() {
         global.printLog("activated every one");

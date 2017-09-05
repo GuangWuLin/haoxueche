@@ -27,12 +27,12 @@
         </el-row>
         <!--列表-->
         <el-table :data="deviceList">
-            <el-table-column prop="number" label="设备编码"></el-table-column>
+            <el-table-column prop="number" label="设备编码" width="200"></el-table-column>
             <el-table-column prop="type" label="设备类型" :formatter="formatter"></el-table-column>
             <el-table-column prop="model" label="设备型号"></el-table-column>
             <el-table-column prop="manufacturer" label="厂商"></el-table-column>
             <el-table-column prop="bind" label="是否绑定教室" :formatter="formatter"></el-table-column>
-            <el-table-column prop="gmtCreate" label="创建时间" :formatter="formatter"></el-table-column>
+            <el-table-column prop="gmtCreate" label="创建时间" :formatter="formatter" width="200"></el-table-column>
             <el-table-column prop="task" label="操作">
                 <template scope="scope">
                     <el-button type="text" size="small" @click="updateDeviceClick(scope.row)">编辑</el-button>
@@ -100,7 +100,7 @@
                 </el-form>
             </el-row>
             <div slot="footer" class="dialog-footer">
-                <el-button @click.native="addDevice = false" size="large">取消</el-button>
+                <el-button @click.native="updateDevice = false" size="large">取消</el-button>
                 <el-button type="primary" size="large" @click="updeatDevice">保存</el-button>
             </div>
         </el-dialog>
@@ -171,7 +171,7 @@ export default {
                 if (res.success === true) {
                     this.total = res.object.num;
                     this.deviceList = res.object.list;
-                    console.log(this.deviceList);
+                    global.printLog(this.deviceList);
                 }
             });
         },
@@ -220,7 +220,6 @@ export default {
                     args.number = this.updateDeviceCondition.number;
                     args.model = this.updateDeviceCondition.model;
                     args.manufacturer = this.updateDeviceCondition.manufacturer;
-                    // console.log("1111111!!!"+args)
                     request.teaching.device.save.updeatDevice(args).then((res) => {
                         if (res.success === true) {
                             this.updateDevice = false;

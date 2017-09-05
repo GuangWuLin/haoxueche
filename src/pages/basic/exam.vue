@@ -20,8 +20,8 @@
                 </el-form>
             </el-col>
             <!--列表-->
-            <el-table :data="exam.registered.list" highlight-current-row @row-click="handleRowClick">
-                <el-table-column type="selection" width="55"></el-table-column>
+            <el-table :data="exam.registered.list" @row-click="handleRowClick">
+                <el-table-column type="selection" width="35"></el-table-column>
                 <el-table-column prop="studentName" label="学员姓名"></el-table-column>
                 <el-table-column prop="phone" label="电话号码"></el-table-column>
                 <el-table-column prop="carType" label="考试车型"></el-table-column>
@@ -47,10 +47,10 @@
                         <el-col :span="11" class="mt15">
                             <el-table :data="exam.student.list" @selection-change="handleSelectionChange">
                                 <el-table-column type="selection" width="55"></el-table-column>
-                                <el-table-column prop="studentName" label="姓名"></el-table-column>
-                                <el-table-column prop="phone" label="号码" width="128"></el-table-column>
+                                <el-table-column prop="studentName" label="姓名" :show-overflow-tooltip="true"></el-table-column>
+                                <el-table-column prop="phone" label="号码" width="150"></el-table-column>
                                 <el-table-column prop="carTypeName" label="车型"></el-table-column>
-                                <el-table-column prop="schoolName" label="学校"></el-table-column>
+                                <el-table-column prop="schoolName" label="学校" :show-overflow-tooltip="true"></el-table-column>
                             </el-table>
                             <!--工具条-->
                             <el-pagination layout="total, prev, pager, next, jumper" @current-change="handleCurrentChange" :page-size="pageSize" :total="exam.student.total">
@@ -60,10 +60,10 @@
                         </el-col>
                         <el-col :span="12" class="mt15">
                             <el-table :data="exam.selectData.list">
-                                <el-table-column prop="studentName" label="姓名"></el-table-column>
-                                <el-table-column prop="phone" label="号码" width="128"></el-table-column>
+                                <el-table-column prop="studentName" label="姓名" :show-overflow-tooltip="true"></el-table-column>
+                                <el-table-column prop="phone" label="号码" width="150"></el-table-column>
                                 <el-table-column prop="carTypeName" label="车型"></el-table-column>
-                                <el-table-column prop="schoolName" label="学校"></el-table-column>
+                                <el-table-column prop="schoolName" label="学校" :show-overflow-tooltip="true"></el-table-column>
                                 <el-table-column label="操作" width="100">
                                     <template scope="scope">
                                         <el-button type="text" size="small" @click="handleRemoveSelected(scope.row)">移除</el-button>
@@ -109,8 +109,8 @@
                         </el-col>
                         <el-col :span="24" class="mt20">
                             <el-table :data="exam.unregistered.list">
-                                <el-table-column prop="studentName" label="姓名"></el-table-column>
-                                <el-table-column prop="phone" label="电话" width="160"></el-table-column>
+                                <el-table-column prop="studentName" label="姓名" :show-overflow-tooltip="true"></el-table-column>
+                                <el-table-column prop="phone" label="电话" width="150"></el-table-column>
                                 <el-table-column prop="carType" label="车型"></el-table-column>
                                 <el-table-column prop="gmtExam" label="考试日期" :formatter="formatter" width="130"></el-table-column>
                                 <!--<el-table-column prop="schoolName" label="分校"></el-table-column>-->
@@ -122,7 +122,7 @@
                                         </el-select>
                                     </template>
                                 </el-table-column>
-                                <el-table-column label="成绩" width="350">
+                                <el-table-column label="成绩" width="330">
                                     <template scope="scope">
                                         <el-radio-group v-model="scope.row.score" size="small" style="font-size:13px;">
                                             <el-radio :label="1">一次通过</el-radio>

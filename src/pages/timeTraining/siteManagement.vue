@@ -15,19 +15,19 @@
                 </el-table-column>
                 <el-table-column prop="address" label="区域地址">
                 </el-table-column>
-                <el-table-column prop="area" label="区域面积(平方米)">
+                <el-table-column prop="area" label="区域面积(平方米)" width="200">
                 </el-table-column>
                 <el-table-column prop="stage" label="培训部分" :formatter="formatData">
                 </el-table-column>
                 <el-table-column prop="teachType" label="培训车型">
                 </el-table-column>
-                <el-table-column prop="gmtModify" label="新增时间" :formatter="formatData" width="160">
-                </el-table-column>
+                <!--<el-table-column prop="gmtModify" label="新增时间" :formatter="formatData" width="160">
+                                                </el-table-column>-->
                 <el-table-column prop="report" label="上报状态" :formatter="formatData">
                 </el-table-column>
                 <el-table-column prop="status" label="审核状态" :formatter="formatData">
                 </el-table-column>
-                <el-table-column label="操作">
+                <el-table-column label="操作" width="160">
                     <template scope="scope">
                         <el-button type="text" size="small" @click.stop="handleOperator(scope.row,1)" :disabled="scope.row.status!=='UN_DO'">审核</el-button>
                         <el-button type="text" size="small" @click.stop="handleOperator(scope.row,2)" :disabled="scope.row.status==='DOING'">修改</el-button>
@@ -278,6 +278,7 @@ export default {
             },
             detailsFormVisible: false,
             detailSiteForm: {},
+            curSiteId: 0,
             schoolCode: JSON.parse(sessionStorage.getItem("user")).schoolCode
         }
     },
@@ -300,6 +301,7 @@ export default {
         //列表行点击
         rowClick(row) {
             let id = row.id;
+            this.curSiteId = id;
             this.detailsFormVisible = true;
             this.initMap(() => {
                 this.initData(false);
@@ -391,7 +393,7 @@ export default {
                 request.timeTraining.site.review(id).then((res) => {
                     if (res.success === true) {
                         this.getSites();
-                        this.$message({ message: "场地审核成功！", type: "success" });
+                        this.$message({ message: "场地审核成功", type: "success" });
                     }
                     else {
                         this.$message.error("场地审核失败，原因：" + res.message);
@@ -431,7 +433,7 @@ export default {
                     request.timeTraining.site.delete(id).then((res) => {
                         if (res.success === true) {
                             this.getSites();
-                            this.$message({ type: "success", message: "删除成功！" });
+                            this.$message({ type: "success", message: "删除成功" });
                         }
                         else {
                             this.$message.error("删除失败，原因：" + res.message);
@@ -459,7 +461,7 @@ export default {
                                 if (res.success === true) {
                                     this.getSites();
                                     this.newSiteFormVisible = false;
-                                    this.$message({ message: "场地创建成功！", type: "success" });
+                                    this.$message({ message: "场地创建成功", type: "success" });
                                 }
                                 else {
                                     this.$message.error("场地创建失败，原因：" + res.message);
@@ -467,7 +469,7 @@ export default {
                             });
                         }
                         else {
-                            this.$message.error("请在地图上设置围栏！");
+                            this.$message.error("请在地图上设置围栏");
                         }
                     }
                 });
@@ -488,7 +490,7 @@ export default {
                     if (res.success === true) {
                         this.getSites();
                         this.editSiteFormVisible = false;
-                        this.$message({ message: "场地编辑成功！", type: "success" });
+                        this.$message({ message: "场地编辑成功", type: "success" });
                     }
                     else {
                         this.$message.error("场地编辑失败，原因：" + res.message);
@@ -549,21 +551,64 @@ export default {
             amaps.clearMap();
         },
         initMap(callback, mapObj) {
-            global.printLog(window._amapInit);
+            //global.printLog(window._amapInit);
             var interval = setInterval(() => {
                 if (window._amapInit) {
                     clearInterval(interval);
                     //global.printLog("地图已加载完成^_^");
                     this.$message.success({ message: "地图已加载完成^_^" });
                     setTimeout(() => {
-                        amaps = new AMap.Map(mapObj, {
-                            resizeEnable: true,
-                            zoom: 17,
-                            center: [global.map.center.lat, global.map.center.lng]
+                        global.printLog(this.curSiteId);
+                        request.public.queryTranning3DPictureById(this.curSiteId).then((res) => {
+                            if (res.success) {
+                                let tileLayer = [];
+                                if (res.object) {
+                                    let data = res.object;
+                                    let upLeft = [data.upLeft.longitude, data.upLeft.latitude];
+                                    let downRight = [data.downRight.longitude, data.downRight.latitude];
+                                    tileLayer = [new AMap.TileLayer(), new AMap.ImageLayer({
+                                        url: data.picUrl,
+                                        bounds: new AMap.Bounds(
+                                            upLeft,
+                                            downRight
+                                        ),
+                                        zooms: [3, 20]
+                                    })];
+                                }
+                                amaps = new AMap.Map(mapObj, {
+                                    resizeEnable: true,
+                                    zoom: 11,
+                                    layers: tileLayer,
+                                    expandZoomRange: true,
+                                    zooms: [3, 20]
+                                    //center: [global.map.center.lat, global.map.center.lng]
+                                });
+                                amaps.on("complete", () => {
+                                    callback();
+                                });
+                            }
                         });
-                        amaps.on("complete", () => {
-                            callback();
-                        });
+                        // let tranningPicture = this.$store.state.tranningPicture;
+                        // for (let item in tranningPicture) {
+                        //     let upLeft = [tranningPicture[item].upLeft.longitude, tranningPicture[item].upLeft.latitude];
+                        //     let downRight = [tranningPicture[item].downRight.longitude, tranningPicture[item].downRight.latitude];
+                        //     let tileLayer = [new AMap.TileLayer(), new AMap.ImageLayer({
+                        //         url: tranningPicture[item].picUrl,
+                        //         bounds: new AMap.Bounds(
+                        //             upLeft,
+                        //             downRight
+                        //         ),
+                        //         zooms: [3, 20]
+                        //     })];
+                        //     amaps = new AMap.Map("mapContainer", {
+                        //         resizeEnable: true,
+                        //         zoom: 11,
+                        //         //center: [104.803023, 29.348056],
+                        //         layers: tileLayer,
+                        //         expandZoomRange: true,
+                        //         zooms: [3, 20]
+                        //     });
+                        // }
                     }, 50);
                 }
                 else {
@@ -573,7 +618,7 @@ export default {
         },
         handleInputChange(val) {
             this.$nextTick(function () {
-                console.log(val);
+                global.printLog(val);
                 this.$refs.maxCarNum.$refs.input.value = (val === "0" ? 1 : val);
             });
         }

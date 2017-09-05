@@ -2,7 +2,7 @@
     <section class="className">
         <!--列表-->
         <el-table :data="managerList">
-            <el-table-column prop="attachService.name" label="理论教学"></el-table-column>
+            <el-table-column prop="attachService.name" label="服务名称"></el-table-column>
             <el-table-column prop="gmtApply" label="申请时间" :formatter="formatter"></el-table-column>
             <el-table-column prop="gmtApproval" label="完成时间" :formatter="formatter"></el-table-column>
             <el-table-column prop="status" label="状态" :formatter="formatter"></el-table-column>
@@ -33,7 +33,7 @@
                         <div class="el-step_description">
                             <div class="el-step__title is-wait">
                                 <p class="description-title">
-                                    恢复服务
+                                    {{item.operation}}
                                     <em>{{item.gmtOperateTime}}</em>
                                 </p>
                                 <p class="description-operator">
@@ -104,7 +104,6 @@ export default {
         //查看操作历史
         queryHistoryList(id) {
             let args = [id, this.history.currentPage, this.pageSize];
-            // console.log("1111111!!!"+args)
             request.addService.manager.query.queryHistoryList(args).then((res) => {
                 if (res.success === true) {
                     this.history.list = [];
@@ -121,7 +120,7 @@ export default {
                             serviceId: data[item].serviceId
                         })
                     }
-                    console.log(data);
+                    global.printLog(data);
                 }
             });
         },
